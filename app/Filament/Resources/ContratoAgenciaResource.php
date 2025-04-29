@@ -1,0 +1,115 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\ContratoAgenciaResource\Pages;
+use App\Filament\Resources\ContratoAgenciaResource\RelationManagers;
+use App\Models\ContratoAgencia;
+use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+
+class ContratoAgenciaResource extends Resource
+{
+    protected static ?string $model = ContratoAgencia::class;
+    protected static ?string $label = 'Contrato';
+    protected static ?string $pluralLabel = 'Contratos';
+    protected static ?string $navigationGroup = 'Administración';
+
+    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document';
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Select::make('agencia_id')
+                    ->label('Agencia')
+                    ->relationship('agencia', 'nombre')
+                    ->required()
+                    ->reactive()
+                    ->columnSpanFull(),
+
+                DatePicker::make('fecha_inicio')
+                    ->required(),
+
+                DatePicker::make('fecha_fin')
+                    ->required(),
+
+                TextInput::make('observaciones')
+                    ->columnSpanFull(),
+
+                FileUpload::make('archivo_contrato')
+                    ->label('Subir Contrato')
+                    ->disk('local')
+                    ->acceptedFileTypes([
+                        'application/pdf',
+                        'application/msword',
+                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    ])
+                    ->directory('contratos')
+                    ->maxFiles(1)
+                    ->required()
+                    ->preserveFilenames()
+                    ->columnSpanFull(),
+
+                Select::make('estado')
+                    ->label('Estado del Contrato')
+                    ->options([
+                        'activo' => 'Activo',
+                        'vencido' => 'Vencido',
+                        'cancelado' => 'Cancelado',
+                    ])
+                    ->visible(fn (string $operation) => $operation === 'edit'),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('serial_number')
+                    ->label('N°')
+                    ->rowIndex(),
+                TextColumn::make('agencia.nombre')->label('Agencia')->searchable(),
+                TextColumn::make('fecha_inicio')->label('Inicio del contrato'),
+                TextColumn::make('fecha_fin')->label('Fin del contrato'),
+                TextColumn::make('estado')
+                    ->label('Estado')
+                    ->badge()
+                    ->colors([
+                        'success' => 'activo',
+                        'danger' => 'vencido',
+                        'warning' => 'cancelado',
+                    ])
+                    ->formatStateUsing(fn (string $state) => ucfirst($state)),
+            ])
+            ->filters([
+                //
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ManageContratoAgencias::route('/'),
+        ];
+    }
+}

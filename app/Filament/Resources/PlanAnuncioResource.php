@@ -9,17 +9,17 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PlanAnuncioResource extends Resource
 {
+    protected static ?string $model = PlanAnuncio::class;
     protected static ?string $navigationGroup = 'Configuración';
     protected static ?int    $navigationSort  = 1;
     protected static ?string $navigationLabel = 'Planes';
-    protected static ?string $model = PlanAnuncio::class;
-
     protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
 
     public static function form(Form $form): Form
@@ -35,11 +35,10 @@ class PlanAnuncioResource extends Resource
                 Forms\Components\TextInput::make('precio')
                     ->required()
                     ->numeric(),
-                Forms\Components\Toggle::make('destacado')
-                    ->required(),
                 Forms\Components\TextInput::make('beneficios')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\Toggle::make('destacado'),
             ]);
     }
 
@@ -47,22 +46,26 @@ class PlanAnuncioResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('nombre')
+                TextColumn::make('serial_number')
+                    ->label('N°')
+                    ->rowIndex(),
+                TextColumn::make('nombre')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('descripcion')
+                TextColumn::make('descripcion')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('precio')
+                TextColumn::make('precio')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\IconColumn::make('destacado')
                     ->boolean(),
-                Tables\Columns\TextColumn::make('beneficios')
+                TextColumn::make('beneficios')
+                    ->limit(50)
                     ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
+                TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -72,6 +75,7 @@ class PlanAnuncioResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -80,19 +84,10 @@ class PlanAnuncioResource extends Resource
             ]);
     }
 
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
-
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPlanAnuncios::route('/'),
-            'create' => Pages\CreatePlanAnuncio::route('/create'),
-            'edit' => Pages\EditPlanAnuncio::route('/{record}/edit'),
+            'index' => Pages\ManagePlanAnuncios::route('/'),
         ];
     }
 }

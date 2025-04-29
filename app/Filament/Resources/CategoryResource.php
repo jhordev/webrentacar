@@ -49,7 +49,9 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')->sortable(),
+                TextColumn::make('serial_number')
+                    ->label('N°')
+                    ->rowIndex(),
                 TextColumn::make('name')->limit('50')->sortable()->searchable(),
                 TextColumn::make('slug')->limit('50'),
                 TextColumn::make('created_at')

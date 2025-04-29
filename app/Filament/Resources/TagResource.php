@@ -41,7 +41,6 @@ class TagResource extends Resource
                         ->required(),
                     TextInput::make('slug')->required()
                 ])
-
             ]);
     }
 

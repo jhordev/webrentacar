@@ -66,6 +66,7 @@ class FaqPreguntaResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'asc')
             ->columns([
                 TextColumn::make('serial_number')
                     ->label('N°')
@@ -74,6 +75,7 @@ class FaqPreguntaResource extends Resource
                 ->searchable(),
                 TextColumn::make('respuesta')
                 ->limit(50),
+                TextColumn::make('categoria.nombre'),
                 Tables\Columns\IconColumn::make('estado')
                     ->label('Activo')
                     ->boolean()
@@ -95,7 +97,10 @@ class FaqPreguntaResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->modalHeading('¿Estás seguro de eliminar esta pregunta?')
+                    ->modalDescription('Esta acción no se puede deshacer. Se eliminará la pregunta de forma permanente.')
+                    ->modalButton('Sí, estoy seguro'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

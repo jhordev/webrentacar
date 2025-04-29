@@ -40,18 +40,23 @@ class FaqCategoriaResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'asc')
             ->columns([
                 TextColumn::make('serial_number')
                     ->label('N°')
                     ->rowIndex(),
-                TextColumn::make('nombre')
+                TextColumn::make('nombre')->label('Nombre de categoría'),
+                TextColumn::make('created_at')->label('Fecha de Creación'),
             ])
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->modalHeading('¿Estas seguro de eliminar esta categoria?')
+                    ->modalDescription('Eliminar la categoría también eliminará todas las preguntas relacionadas con ella. Esta acción no se puede deshacer.')
+                    ->modalButton('Sí, estoy seguro'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

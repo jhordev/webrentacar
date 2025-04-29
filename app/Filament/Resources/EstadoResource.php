@@ -24,7 +24,7 @@ class EstadoResource extends Resource
 
     protected static ?string $label = 'Estado';
     protected static ?string $pluralLabel = 'Estados';
-    protected static ?string $navigationGroup = 'Administración';
+    protected static ?string $navigationGroup = 'Ubigeo';
     protected static ?string $navigationIcon = 'heroicon-o-map';
     public static function form(Form $form): Form
     {
@@ -40,7 +40,11 @@ class EstadoResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'asc')
             ->columns([
+                TextColumn::make('serial_number')
+                    ->label('N°')
+                    ->rowIndex(),
                 TextColumn::make('nombre')->searchable()->sortable(),
             ])
             ->filters([
@@ -48,6 +52,10 @@ class EstadoResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->modalHeading('¿Estas seguro de eliminar este estado?')
+                    ->modalDescription('Eliminar el estado también eliminará todos los municipios relacionados con él. Esta acción no se puede deshacer.')
+                    ->modalButton('Sí, estoy seguro'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

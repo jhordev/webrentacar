@@ -7,6 +7,7 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -30,7 +31,10 @@ class MunicipiosRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('nombre')
             ->columns([
-                Tables\Columns\TextColumn::make('nombre'),
+                TextColumn::make('serial_number')
+                    ->label('N°')
+                    ->rowIndex(),
+                TextColumn::make('nombre')->label('Nombre del Municipio')->searchable()->sortable(),
             ])
             ->filters([
                 //

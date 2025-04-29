@@ -23,12 +23,16 @@ class ConfiguracionEmpresa extends Page
     public function mount(): void
     {
         $empresa = ConfigEmpresa::with(['redesSociales' => function($query) {
-            $query->orderBy('orden'); // Ordenar por el campo 'orden'
-        }])->firstOrCreate(['id' => 1]);
+            $query->orderBy('orden');
+        }])->firstOrCreate(
+            ['id' => 1],
+            ['nombre' => 'Mi Empresa'] // Valor temporal requerido
+        );
+
 
         $this->formData = [
             ...$empresa->only([
-                'nombre','logo','direccion','email',
+                'name','logo','direccion','email',
                 'telefono','whatsapp','sitio_web',
             ]),
             'redes_sociales' => $empresa->redesSociales

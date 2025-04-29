@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\MunicipioResource\Pages;
 use App\Filament\Resources\MunicipioResource\RelationManagers;
+use App\Models\Estado;
 use App\Models\Municipio;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -15,6 +16,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Filters\SelectFilter;
 
 class MunicipioResource extends Resource
 {
@@ -22,7 +24,7 @@ class MunicipioResource extends Resource
 
     protected static ?string $label = 'Municipio';
     protected static ?string $pluralLabel = 'Municipios';
-    protected static ?string $navigationGroup = 'Administración';
+    protected static ?string $navigationGroup = 'Ubigeo';
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office';
 
@@ -34,7 +36,8 @@ class MunicipioResource extends Resource
             ->schema([
                 Select::make('estado_id')
                     ->label('Estado')
-                    ->relationship('estado', 'nombre')
+                    ->options(fn () => Estado::pluck('nombre', 'id')->toArray())
+                    ->searchable()
                     ->required()
                     ->columnSpanFull(),
                 TextInput::make('nombre')
@@ -48,16 +51,26 @@ class MunicipioResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'asc')
             ->columns([
-                TextColumn::make('nombre')->label('Nombre del Municipio')->searchable()->sortable(),
+                TextColumn::make('serial_number')
+                    ->label('N°')
+                    ->rowIndex(),
+                TextColumn::make('nombre')->label('Nombre del Municipio')->searchable(),
                 TextColumn::make('estado.nombre')->label('Estado'),
             ])
             ->filters([
-                //
+                SelectFilter::make('estado_id')
+                    ->label('Estado')
+                    ->options(fn () => Estado::pluck('nombre', 'id')->toArray())
+                    ->searchable()
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->modalHeading('¿Estás seguro de eliminar este municipio?')
+                    ->modalDescription('Esta acción no se puede deshacer. Se eliminará el municipio de forma permanente.')
+                    ->modalButton('Sí, eliminar'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

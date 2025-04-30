@@ -29,10 +29,16 @@ class TagsRelationManager extends RelationManager
                 Section::make()
                     ->schema([
                         TextInput::make('name')
+                            ->label('Nombre')
+                            ->placeholder('Escribe el nombre...')
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state)))
                             ->required(),
-                        TextInput::make('slug')->required()
+
+                        TextInput::make('slug')
+                            ->label('Slug (automático)')
+                            ->placeholder('Se genera a partir del nombre')
+                            ->required(),
                     ])
             ]);
     }
@@ -42,24 +48,43 @@ class TagsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('name')
             ->columns([
-                TextColumn::make('id')->sortable(),
-                TextColumn::make('name')->limit('50')->sortable(),
+                TextColumn::make('serial_number')
+                    ->label('N°')
+                    ->rowIndex(),
+                TextColumn::make('name')->limit('50')->sortable()->searchable()->label('Nombre'),
                 TextColumn::make('slug')->limit('50'),
-                TextColumn::make('created_at')
+                TextColumn::make('created_at')->label('Fecha de creación')->dateTime('d/m/Y H:i'),
             ])
             ->filters([
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
-                AttachAction::make(),
+                Tables\Actions\CreateAction::make()->label('Crear nuevo tag'),
+                AttachAction::make()
+                    ->label('Vincular tag')
+                    ->form([
+                        Forms\Components\Select::make('recordId')
+                            ->label('Selecciona un tag')
+                            ->placeholder('Buscar o seleccionar una etiqueta...')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->options(function () {
+                                // ID de tags ya vinculados al post actual
+                                $tagsYaVinculados = $this->getOwnerRecord()
+                                    ->tags()
+                                    ->pluck('tags.id')
+                                    ->toArray();
+
+                                // Solo muestra los tags que aún no están vinculados
+                                return \App\Models\Tag::whereNotIn('id', $tagsYaVinculados)
+                                    ->pluck('name', 'id')
+                                    ->toArray();
+                            }),
+                    ])
             ])
             ->actions([
-                DetachAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make()
-                    ->disabled(fn ($record) => $record->posts()->count() > 0)
-                    ->tooltip('Este tag no puede eliminarse porque está asociado a uno o más posts')
+                DetachAction::make()->label('Quitar'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

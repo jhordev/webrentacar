@@ -56,7 +56,7 @@ class FaqCategoriaResource extends Resource
                 Tables\Actions\DeleteAction::make()
                     ->modalHeading('¿Estas seguro de eliminar esta categoria?')
                     ->modalDescription('Eliminar la categoría también eliminará todas las preguntas relacionadas con ella. Esta acción no se puede deshacer.')
-                    ->modalButton('Sí, estoy seguro'),
+                    ->modalSubmitActionLabel('Sí, estoy seguro')
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

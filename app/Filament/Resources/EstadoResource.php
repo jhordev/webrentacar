@@ -55,7 +55,7 @@ class EstadoResource extends Resource
                 Tables\Actions\DeleteAction::make()
                     ->modalHeading('¿Estas seguro de eliminar este estado?')
                     ->modalDescription('Eliminar el estado también eliminará todos los municipios relacionados con él. Esta acción no se puede deshacer.')
-                    ->modalButton('Sí, estoy seguro'),
+                    ->modalSubmitActionLabel('Sí, estoy seguro')
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

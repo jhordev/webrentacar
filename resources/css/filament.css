@@ -1,0 +1,8 @@
+/* resources/css/filament.css */
+textarea.trix-content,
+.trix-content {
+    resize: vertical !important;
+    min-height: 300px;
+    max-height: 800px;
+    overflow: auto;
+}

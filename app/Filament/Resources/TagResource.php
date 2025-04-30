@@ -36,10 +36,17 @@ class TagResource extends Resource
                 Section::make()
                 ->schema([
                     TextInput::make('name')
+                        ->label('Nombre')
+                        ->placeholder('Escribe el nombre...')
                         ->live(onBlur: true)
                         ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state)))
                         ->required(),
-                    TextInput::make('slug')->required()
+
+                    TextInput::make('slug')
+                        ->label('Slug (automático)')
+                        ->placeholder('Se genera a partir del nombre')
+                        ->required(),
+
                 ])
             ]);
     }
@@ -48,16 +55,19 @@ class TagResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')->sortable(),
-                TextColumn::make('name')->limit('50')->sortable()->searchable(),
+                TextColumn::make('serial_number')
+                    ->label('N°')
+                    ->rowIndex(),
+                TextColumn::make('name')->limit('50')->sortable()->searchable()->label('Nombre'),
                 TextColumn::make('slug')->limit('50'),
-                TextColumn::make('created_at')
+                TextColumn::make('created_at')->label('Fecha de creación')->dateTime('d/m/Y H:i'),
             ])
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

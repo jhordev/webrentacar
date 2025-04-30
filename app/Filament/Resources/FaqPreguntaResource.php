@@ -100,7 +100,7 @@ class FaqPreguntaResource extends Resource
                 Tables\Actions\DeleteAction::make()
                     ->modalHeading('¿Estás seguro de eliminar esta pregunta?')
                     ->modalDescription('Esta acción no se puede deshacer. Se eliminará la pregunta de forma permanente.')
-                    ->modalButton('Sí, estoy seguro'),
+                    ->modalSubmitActionLabel('Sí, estoy seguro'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

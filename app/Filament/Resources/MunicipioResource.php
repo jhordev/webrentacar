@@ -70,7 +70,7 @@ class MunicipioResource extends Resource
                 Tables\Actions\DeleteAction::make()
                     ->modalHeading('¿Estás seguro de eliminar este municipio?')
                     ->modalDescription('Esta acción no se puede deshacer. Se eliminará el municipio de forma permanente.')
-                    ->modalButton('Sí, eliminar'),
+                    ->modalSubmitActionLabel('Sí, estoy seguro')
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

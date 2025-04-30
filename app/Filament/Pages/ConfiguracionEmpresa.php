@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Forms\Components\{Section, Grid, TextInput, FileUpload, Repeater, Hidden};
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ConfiguracionEmpresa extends Page
 {
@@ -26,13 +27,12 @@ class ConfiguracionEmpresa extends Page
             $query->orderBy('orden');
         }])->firstOrCreate(
             ['id' => 1],
-            ['nombre' => 'Mi Empresa'] // Valor temporal requerido
+            ['nombre' => 'Mi Empresa']
         );
-
 
         $this->formData = [
             ...$empresa->only([
-                'name','logo','direccion','email',
+                'nombre','logo','direccion','email',
                 'telefono','whatsapp','sitio_web',
             ]),
             'redes_sociales' => $empresa->redesSociales
@@ -57,7 +57,14 @@ class ConfiguracionEmpresa extends Page
                                 TextInput::make('telefono'),
                                 TextInput::make('whatsapp'),
                                 TextInput::make('sitio_web'),
-                                FileUpload::make('logo')->directory('logo'),
+                                FileUpload::make('logo')
+                                    ->disk('public')
+                                    ->directory('configempresa')
+                                    ->image()
+                                    ->rules(['dimensions:ratio=1/1'])
+                                    ->helperText('Solo se permiten imágenes cuadradas PNG, JPG, SVG o WEBP.')
+                                    ->columnSpanFull()
+                                    ->preserveFilenames(),
                             ]),
                     ]),
 
@@ -83,9 +90,34 @@ class ConfiguracionEmpresa extends Page
     {
         $empresa = ConfigEmpresa::firstOrCreate(['id' => 1]);
 
-        // Guardar los datos principales
+        $nombreEmpresa = $this->formData['nombre'] ?? 'sin-nombre';
+        $nombreLimpio = Str::slug($nombreEmpresa);
+
+        // Validar si hay un logo cargado
+        if (!empty($this->formData['logo'])) {
+            $archivo = is_array($this->formData['logo'])
+                ? reset($this->formData['logo'])
+                : $this->formData['logo'];
+
+            $extension = pathinfo($archivo, PATHINFO_EXTENSION);
+            $nuevoNombre = $nombreLimpio . '-logo.' . $extension;
+            $rutaDestino = 'configempresa/' . $nuevoNombre;
+
+            if (Storage::disk('public')->exists($archivo)) {
+                // Borrar si ya existe uno con el mismo nombre
+                if (Storage::disk('public')->exists($rutaDestino)) {
+                    Storage::disk('public')->delete($rutaDestino);
+                }
+
+                Storage::disk('public')->move($archivo, $rutaDestino);
+                $this->formData['logo'] = $rutaDestino;
+            }
+        }
+
+        // Guardar datos de la empresa
         $empresa->fill($this->formData)->save();
 
+        // Guardar redes sociales
         $idsConservados = [];
         $items = $this->formData['redes_sociales'] ?? [];
 

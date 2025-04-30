@@ -37,10 +37,17 @@ class CategoryResource extends Resource
                 Section::make()
                     ->schema([
                         TextInput::make('name')
+                            ->label('Nombre')
+                            ->placeholder('Ingresa el nombre...')
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state)))
                             ->required(),
-                        TextInput::make('slug')->required()
+
+                        TextInput::make('slug')
+                            ->label('Slug (automático)')
+                            ->placeholder('Se genera a partir del nombre')
+                            ->required(),
+
                     ])
             ]);
     }
@@ -52,15 +59,30 @@ class CategoryResource extends Resource
                 TextColumn::make('serial_number')
                     ->label('N°')
                     ->rowIndex(),
-                TextColumn::make('name')->limit('50')->sortable()->searchable(),
-                TextColumn::make('slug')->limit('50'),
+                TextColumn::make('name')
+                    ->label('Nombre')
+                    ->limit(50)
+                    ->sortable()
+                    ->searchable(),
+
+                TextColumn::make('slug')
+                    ->label('Slug')
+                    ->limit(50),
+
                 TextColumn::make('created_at')
+                    ->label('Fecha de creación')
+                    ->dateTime('d/m/Y H:i'),
+
             ])
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->modalHeading('¿Estas seguro de eliminar esta categoría?')
+                    ->modalDescription('Eliminar esta categoría también eliminará todos los artículos relacionados con ella. Esta acción no se puede deshacer.')
+                    ->modalSubmitActionLabel('Sí, estoy seguro')
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

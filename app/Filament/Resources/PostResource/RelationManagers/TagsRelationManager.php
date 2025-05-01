@@ -84,7 +84,12 @@ class TagsRelationManager extends RelationManager
                     ])
             ])
             ->actions([
-                DetachAction::make()->label('Quitar'),
+                DetachAction::make()
+                    ->label('Quitar')
+                    ->modalHeading(fn ($record) => '¿Quitar etiqueta "' . $record->name . '"?')
+                    ->modalDescription('Esta acción desvinculará la asociación de esta etiqueta con el artículo. No se eliminará la etiqueta en sí.')
+                    ->modalSubmitActionLabel('Sí, quitar')
+
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

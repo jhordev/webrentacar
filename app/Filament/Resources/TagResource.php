@@ -67,7 +67,10 @@ class TagResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->modalHeading(fn ($record) => '¿Eliminar la etiqueta "' . $record->name . '"?')
+                    ->modalDescription('Esta acción eliminará la etiqueta y desvinculará su relación con todos los artículos asociados. Los artículos no serán eliminados.')
+                    ->modalSubmitActionLabel('Sí, eliminar')
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

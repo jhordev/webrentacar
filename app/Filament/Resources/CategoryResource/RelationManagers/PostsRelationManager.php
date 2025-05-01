@@ -19,7 +19,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Filament\Forms\Components\Hidden;
 
 class PostsRelationManager extends RelationManager
 {
@@ -31,16 +33,75 @@ class PostsRelationManager extends RelationManager
             ->schema([
                 Section::make()
                     ->schema([
-                        Select::make('category_id')
-                            ->relationship('category', 'name'),
+                        Hidden::make('category_id')
+                            ->default(fn (RelationManager $livewire) => $livewire->getOwnerRecord()->id)
+                            ->required(),
                         TextInput::make('title')
+                            ->label('Título del artículo')
+                            ->placeholder('Escribe el título aquí')
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state)))
                             ->required(),
-                        TextInput::make('slug')->required(),
-                        FileUpload::make('image'),
-                        RichEditor::make('content'),
+
+                        TextInput::make('slug')
+                            ->label('Slug (automático)')
+                            ->placeholder('Se genera automáticamente a partir del título')
+                            ->required(),
+
+                        FileUpload::make('image')
+                            ->label('Imagen principal del artículo')
+                            ->helperText('Esta imagen se mostrará como portada en el listado o tarjeta del artículo.')
+                            ->disk('public')
+                            ->directory('articleimg')
+                            ->image()
+                            ->required()
+                            ->getUploadedFileNameForStorageUsing(function ($file, $record, $get) {
+                                $slug = $get('slug') ?? 'sin-slug';
+                                $extension = $file->getClientOriginalExtension();
+                                return $slug . '-articleprincipal.' . $extension;
+                            })
+                            ->deleteUploadedFileUsing(function ($file, $record) {
+                                if ($record && $record->logo && Storage::disk('public')->exists($record->logo)) {
+                                    Storage::disk('public')->delete($record->logo);
+                                }
+                            })
+                            ->afterStateUpdated(function ($state, $set) {
+                                if (is_array($state)) {
+                                    $set(reset($state));
+                                }
+                            })
+                            ->dehydrateStateUsing(function ($state) {
+                                return is_array($state) ? reset($state) : $state;
+                            }),
+
+                        RichEditor::make('content')
+                            ->label('Contenido del artículo')
+                            ->placeholder('Escribe el contenido completo aquí...')
+                            ->required()
+                            ->toolbarButtons([
+                                'attachFiles',
+                                'blockquote',
+                                'bold',
+                                'bulletList',
+                                'codeBlock',
+                                'h1',
+                                'h2',
+                                'h3',
+                                'italic',
+                                'link',
+                                'orderedList',
+                                'redo',
+                                'strike',
+                                'underline',
+                                'undo',
+                            ])
+                            ->fileAttachmentsDisk('public')
+                            ->fileAttachmentsDirectory('imgcontentarticles')
+                            ->fileAttachmentsVisibility('public'),
+
                         Toggle::make('published')
+                            ->label('¿Publicar artículo?')
+                            ->helperText('Activa esta opción si deseas que el artículo esté visible públicamente.')
                     ])
             ]);
     }
@@ -50,18 +111,22 @@ class PostsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('title')
             ->columns([
-                TextColumn::make('id')->sortable(),
-                TextColumn::make('title')->limit('50')->sortable(),
+                TextColumn::make('serial_number')
+                    ->label('N°')
+                    ->rowIndex(),
+                TextColumn::make('title')->limit('50')->sortable()->searchable()->label('Titulo de artículo'),
                 TextColumn::make('slug')->limit('50'),
-                ImageColumn::make('image')->disk('public'),
+                TextColumn::make('created_at')->label('Creado')->dateTime('d/m/Y H:i'),
+                ImageColumn::make('image')->disk('public')->label('Imagen principal'),
                 IconColumn::make('published')
+                    ->label('Publicado')
                     ->boolean(),
             ])
             ->filters([
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()->label('Crear nuevo post'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

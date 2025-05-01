@@ -36,11 +36,15 @@ class Post extends Model
             self::eliminarImagenesRemovidas($post->getOriginal('content'), $post->content);
         });
 
+
+
         // Al eliminar: borrar la imagen del campo `image` y todas las del RichEditor
         static::deleting(function ($post) {
             if ($post->image && \Storage::disk('public')->exists($post->image)) {
                 \Storage::disk('public')->delete($post->image);
             }
+
+            $post->tags()->detach();
 
             self::eliminarImagenesRemovidas($post->content, '');
         });

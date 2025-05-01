@@ -19,4 +19,14 @@ class Tag extends Model
         return $this->posts()->count() === 0;
     }
 
+    public static function boot() //desvincula los tags de los post y elimina el tags
+    {
+        parent::boot();
+
+        static::deleting(function ($tag) {
+            $tag->posts()->detach();
+        });
+    }
+
+
 }

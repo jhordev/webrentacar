@@ -75,11 +75,14 @@ class PlanAnuncioResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->modalHeading('¿Estás seguro de eliminar este plan?')
+                    ->modalDescription('Esta acción no se puede deshacer. Se eliminará el plan de forma permanente.')
+                    ->modalSubmitActionLabel('Sí, estoy seguro'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
                 ]),
             ]);
     }

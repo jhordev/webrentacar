@@ -33,7 +33,7 @@ class AgenciaResource extends Resource
 
     protected static ?string $label = 'Agencia';
     protected static ?string $pluralLabel = 'Agencias';
-    protected static ?string $navigationGroup = 'Administración';
+    protected static ?string $navigationGroup = 'Gestión de Agencias';
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
 
 
@@ -45,27 +45,51 @@ class AgenciaResource extends Resource
                     ->columns(2)
                     ->schema([
                         TextInput::make('nombre')
+                            ->label('Nombre de la Agencia')
+                            ->placeholder('Ej: Agencia Honda Motors')
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state)))
                             ->required(),
-                        TextInput::make('slug')->required(),
-                        TextInput::make('direccion')->required(),
-                        TextInput::make('linkmaps')->required(),
-                        TextInput::make('ubicacion')->required(),
+
+                        TextInput::make('slug')
+                            ->label('Slug (automático)')
+                            ->placeholder('Ej: Agencia-Honda-Motors')
+                            ->required(),
+
+                        TextInput::make('direccion')
+                            ->label('Dirección')
+                            ->placeholder('Ej: Av. Siempre Viva 123')
+                            ->required(),
+
+                        TextInput::make('linkmaps')
+                            ->label('Enlace de Google Maps')
+                            ->placeholder('Ej: https://maps.google.com/...')
+                            ->required(),
+
+                        TextInput::make('ubicacion')
+                            ->label('Ubicación detallada')
+                            ->placeholder('Ej: Frente al Parque Central, piso 3')
+                            ->required(),
+
                         Select::make('estado')
-                            ->label('Estado de la Agencia')
+                            ->label('Estado de agencia')
                             ->options([
                                 'activo' => 'Activo',
                                 'inactivo' => 'Inactivo',
-                            ]),
+                            ])
+                            ->required(),
+
                         Select::make('estado_id')
                             ->label('Estado')
-                            ->relationship('estado', 'nombre') // si tienes modelo Estado con campo 'nombre'
+                            ->relationship('estado', 'nombre')
+                            ->placeholder('Selecciona un departamento')
                             ->required()
                             ->reactive()
                             ->afterStateUpdated(fn (Set $set) => $set('municipio_id', null)),
+
                         Select::make('municipio_id')
                             ->label('Municipio')
+                            ->placeholder('Selecciona un municipio')
                             ->options(function (Get $get) {
                                 if (!$get('estado_id')) {
                                     return [];
@@ -76,24 +100,45 @@ class AgenciaResource extends Resource
                             })
                             ->required()
                             ->searchable(),
+
                         Section::make('Contacto de la empresa')
                             ->columns(3)
                             ->schema([
-                                TextInput::make('email')->required(),
-                                TextInput::make('telefono')->required(),
-                                TextInput::make('whatsapp')->required(),
+                                TextInput::make('email')
+                                    ->label('Correo electrónico')
+                                    ->placeholder('Ej: contacto@agencia.com')
+                                    ->required(),
+
+                                TextInput::make('telefono')
+                                    ->label('Teléfono')
+                                    ->placeholder('Ej: (55) 1234 5678') // Formato típico en CDMX
+                                    ->required(),
+
+                                TextInput::make('whatsapp')
+                                    ->label('Número de WhatsApp')
+                                    ->placeholder('Ej: +52 1 55 1234 5678') // Formato con lada nacional e internacional
+                                    ->required(),
                             ]),
                     ]),
-
-
 
                 Section::make('Contacto')
                     ->description('Persona de contacto con la empresa')
                     ->columns(3)
                     ->schema([
-                        TextInput::make('nom_contacto')->required(),
-                        TextInput::make('tel_contacto')->required(),
-                        TextInput::make('email_contacto')->required(),
+                        TextInput::make('nom_contacto')
+                            ->label('Nombre del contacto')
+                            ->placeholder('Ej: Juan Pérez')
+                            ->required(),
+
+                        TextInput::make('tel_contacto')
+                            ->label('Teléfono del contacto')
+                            ->placeholder('Ej: (55) 9876 5432') // Formato mexicano
+                            ->required(),
+
+                        TextInput::make('email_contacto')
+                            ->label('Correo del contacto')
+                            ->placeholder('Ej: juan.perez@empresa.com')
+                            ->required(),
                     ]),
 
                 Section::make('Imágenes')
@@ -178,7 +223,10 @@ class AgenciaResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->modalHeading('¿Estas seguro de eliminar esta Agencia?')
+                    ->modalDescription('Eliminar esta agencia también eliminará todos los contratos relacionados con ella. Esta acción no se puede deshacer.')
+                    ->modalSubmitActionLabel('Sí, estoy seguro')
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

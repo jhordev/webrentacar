@@ -17,13 +17,14 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Filters\Filter;
 
 class ContratoAgenciaResource extends Resource
 {
     protected static ?string $model = ContratoAgencia::class;
     protected static ?string $label = 'Contrato';
     protected static ?string $pluralLabel = 'Contratos';
-    protected static ?string $navigationGroup = 'Administración';
+    protected static ?string $navigationGroup = 'Gestión de Agencias';
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document';
 
@@ -93,11 +94,32 @@ class ContratoAgenciaResource extends Resource
                     ->formatStateUsing(fn (string $state) => ucfirst($state)),
             ])
             ->filters([
-                //
+                Filter::make('fecha_fin')
+                    ->label('Filtrar por fecha de vencimiento') // Este será el título del filtro
+                    ->form([
+                        DatePicker::make('created_from')
+                            ->label('Desde'),
+                        DatePicker::make('created_until')
+                            ->label('Hasta'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['created_from'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('fecha_fin', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_until'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('fecha_fin', '<=', $date),
+                            );
+                    })
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->modalHeading('¿Estás seguro de eliminar este contrato?')
+                    ->modalDescription('Esta acción no se puede deshacer. Se eliminará el contrato de forma permanente.')
+                    ->modalSubmitActionLabel('Sí, estoy seguro')
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

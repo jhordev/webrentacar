@@ -24,7 +24,6 @@ class VendedorResource extends Resource
 
     protected static ?string $label = 'Vendedor';
     protected static ?string $pluralLabel = 'Vendedores';
-    protected static ?string $navigationGroup = 'Administración';
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 

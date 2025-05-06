@@ -19,16 +19,19 @@ use Filament\Forms\Components\Toggle;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\Wizard;
+use Filament\Forms\Components\Wizard\Step;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Hidden;
+use Illuminate\Support\HtmlString;
 class AnuncioResource extends Resource
 {
     protected static ?string $model = Anuncio::class;
 
     protected static ?string $label = 'Anuncio';
     protected static ?string $pluralLabel = 'Anuncios';
-    protected static ?string $navigationGroup = 'Administración';
+    protected static ?string $navigationGroup = 'Administrador de anuncios';
 
     protected static ?string $navigationIcon = 'heroicon-o-megaphone';
 
@@ -36,77 +39,89 @@ class AnuncioResource extends Resource
     {
         return $form
             ->schema([
-                Hidden::make('num_anuncio')
-                    ->disabled(),
-                TextInput::make('num_anuncio')
-                    ->label('Número de Anuncio')
-                    ->disabled()
-                    ->dehydrated(false)
-                    ->visibleOn('edit'),
-                Select::make('id_categoria')
-                    ->label('Seleccione la categoría de anuncio')
-                    ->relationship('categoria', 'nombre')
-                    ->required()
-                    ->reactive()
-                    ->disabledOn('edit'),
+                Wizard::make([
+                    Step::make('Datos del vehiculo')
+                        ->schema([
 
-                Section::make('Información del anuncio')
-                    ->columns(6)
-                    ->schema([
-                        TextInput::make('titulo')->required()->columnSpanFull(),
-                        Textarea::make('descripcion')->required()->columnSpanFull(),
-                        Select::make('tipo')
-                            ->options([
-                                'premium' => 'Anuncio Premium',
-                                'standar' => 'Anuncio Standar',
-                            ])->columnSpan(2),
-                        TextInput::make('precio')->required()->numeric()->columnSpan(2),
-                        TextInput::make('link_video')->columnSpan(2),
+                        ]),
+                    Step::make('Fotos del vehiculo')
+                        ->schema([
+                            // ...
+                        ]),
+                    Step::make('Datos del anuncio')
+                        ->schema([
+                            Hidden::make('num_anuncio')
+                                ->disabled(),
+                            TextInput::make('num_anuncio')
+                                ->label('Número de Anuncio')
+                                ->disabled()
+                                ->dehydrated(false)
+                                ->visibleOn('edit'),
+                            Select::make('id_categoria')
+                                ->label('Seleccione la categoría de anuncio')
+                                ->relationship('categoria', 'nombre')
+                                ->required()
+                                ->reactive()
+                                ->disabledOn('edit'),
 
-                        Select::make('estado_id')
-                            ->label('Estado')
-                            ->relationship('estadoUbicacion', 'nombre') // si tienes modelo Estado con campo 'nombre'
-                            ->required()
-                            ->reactive()
-                            ->afterStateUpdated(fn (Set $set) => $set('municipio_id', null))
-                            ->columnSpan(2),
-                        Select::make('municipio_id')
-                            ->label('Municipio')
-                            ->options(function (Get $get) {
-                                if (!$get('estado_id')) {
-                                    return [];
-                                }
-                                return \App\Models\Municipio::where('estado_id', $get('estado_id'))
-                                    ->pluck('nombre', 'id')
-                                    ->toArray();
-                            })
-                            ->required()
-                            ->searchable()->columnSpan(2),
-                        Select::make('vendedor_id')
-                            ->label('Seleccione el vendedor de anuncio')
-                            ->relationship('vendedor', 'nombre')
-                            ->visible(fn (Forms\Get $get) =>
-                            in_array($get('id_categoria'), [
-                                1,
-                                2,
-                            ])
-                            )
-                            ->required()->columnSpan(2),
-                        Select::make('agencia_id')
-                            ->label('Seleccione la agencia de anuncio')
-                            ->relationship('agencia', 'nombre')
-                            ->visible(fn (Forms\Get $get) =>
-                                $get('id_categoria') == 3
-                            )
-                            ->required()->columnSpan(2),
-                        Toggle::make('estado')
-                            ->label('Estado')
-                            ->onColor('success')
-                            ->offColor('danger')
-                            ->visibleOn('edit')
-                    ])
+                            Section::make('Información del anuncio')
+                                ->columns(6)
+                                ->schema([
+                                    TextInput::make('titulo')->required()->columnSpanFull(),
+                                    Textarea::make('descripcion')->required()->columnSpanFull(),
+                                    Select::make('tipo')
+                                        ->options([
+                                            'premium' => 'Anuncio Premium',
+                                            'standar' => 'Anuncio Standar',
+                                        ])->columnSpan(2),
+                                    TextInput::make('precio')->required()->numeric()->columnSpan(2),
+                                    TextInput::make('link_video')->columnSpan(2),
+
+                                    Select::make('estado_id')
+                                        ->label('Estado')
+                                        ->relationship('estadoUbicacion', 'nombre') // si tienes modelo Estado con campo 'nombre'
+                                        ->required()
+                                        ->reactive()
+                                        ->afterStateUpdated(fn (Set $set) => $set('municipio_id', null))
+                                        ->columnSpan(2),
+                                    Select::make('municipio_id')
+                                        ->label('Municipio')
+                                        ->options(function (Get $get) {
+                                            if (!$get('estado_id')) {
+                                                return [];
+                                            }
+                                            return \App\Models\Municipio::where('estado_id', $get('estado_id'))
+                                                ->pluck('nombre', 'id')
+                                                ->toArray();
+                                        })
+                                        ->required()
+                                        ->searchable()->columnSpan(2),
+                                    Select::make('vendedor_id')
+                                        ->label('Seleccione el vendedor de anuncio')
+                                        ->relationship('vendedor', 'nombre')
+                                        ->visible(fn (Forms\Get $get) =>
+                                        in_array($get('id_categoria'), [
+                                            1,
+                                            2,
+                                        ])
+                                        )
+                                        ->required()->columnSpan(2),
+                                    Select::make('agencia_id')
+                                        ->label('Seleccione la agencia de anuncio')
+                                        ->relationship('agencia', 'nombre')
+                                        ->visible(fn (Forms\Get $get) =>
+                                            $get('id_categoria') == 3
+                                        )
+                                        ->required()->columnSpan(2),
+                                    Toggle::make('estado')
+                                        ->label('Estado')
+                                        ->onColor('success')
+                                        ->offColor('danger')
+                                        ->visibleOn('edit')
+                                ])
+                        ])
+                ])->columnSpanFull()->submitAction(new HtmlString('<button type="submit">Submit</button>'))
             ]);
-
     }
 
     public static function table(Table $table): Table

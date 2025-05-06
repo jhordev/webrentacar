@@ -21,7 +21,7 @@ class CategoriaAnuncioResource extends Resource
 
     protected static ?string $label = 'Categoria de anuncios';
 
-    protected static ?string $navigationGroup = 'Administración';
+    protected static ?string $navigationGroup = 'Administrador de anuncios';
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
 

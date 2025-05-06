@@ -54,10 +54,11 @@ class ConfiguracionEmpresa extends Page
                                 TextInput::make('nombre')->required(),
                                 TextInput::make('direccion'),
                                 TextInput::make('email')->email(),
-                                TextInput::make('telefono'),
-                                TextInput::make('whatsapp'),
+                                TextInput::make('telefono')->tel(),
+                                TextInput::make('whatsapp')->tel(),
                                 TextInput::make('sitio_web'),
                                 FileUpload::make('logo')
+                                    ->required()
                                     ->disk('public')
                                     ->directory('configempresa')
                                     ->image()

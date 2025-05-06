@@ -59,4 +59,14 @@ class Anuncio extends Model
     {
         return $this->belongsTo(Municipio::class, 'municipio_id');
     }
+
+    public function detalleVehiculo()
+    {
+        return $this->hasOne(DetalleVehiculo::class, 'anuncio_id');
+    }
+
+    public function fotosAnuncio()
+    {
+        return $this->hasMany(FotoAnuncio::class, 'anuncio_id');
+    }
 }

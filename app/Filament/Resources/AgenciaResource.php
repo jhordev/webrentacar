@@ -82,7 +82,7 @@ class AgenciaResource extends Resource
                         Select::make('estado_id')
                             ->label('Estado')
                             ->relationship('estado', 'nombre')
-                            ->placeholder('Selecciona un departamento')
+                            ->placeholder('Selecciona un estado')
                             ->required()
                             ->reactive()
                             ->afterStateUpdated(fn (Set $set) => $set('municipio_id', null)),
@@ -107,16 +107,19 @@ class AgenciaResource extends Resource
                                 TextInput::make('email')
                                     ->label('Correo electrónico')
                                     ->placeholder('Ej: contacto@agencia.com')
+                                    ->email()
                                     ->required(),
 
                                 TextInput::make('telefono')
                                     ->label('Teléfono')
-                                    ->placeholder('Ej: (55) 1234 5678') // Formato típico en CDMX
+                                    ->placeholder('Ej: (55) 1234 5678')
+                                    ->tel()
                                     ->required(),
 
                                 TextInput::make('whatsapp')
                                     ->label('Número de WhatsApp')
-                                    ->placeholder('Ej: +52 1 55 1234 5678') // Formato con lada nacional e internacional
+                                    ->placeholder('Ej: +52 1 55 1234 5678')
+                                    ->tel()
                                     ->required(),
                             ]),
                     ]),
@@ -132,12 +135,14 @@ class AgenciaResource extends Resource
 
                         TextInput::make('tel_contacto')
                             ->label('Teléfono del contacto')
-                            ->placeholder('Ej: (55) 9876 5432') // Formato mexicano
+                            ->placeholder('Ej: (55) 9876 5432')
+                            ->tel()
                             ->required(),
 
                         TextInput::make('email_contacto')
                             ->label('Correo del contacto')
                             ->placeholder('Ej: juan.perez@empresa.com')
+                            ->email()
                             ->required(),
                     ]),
 

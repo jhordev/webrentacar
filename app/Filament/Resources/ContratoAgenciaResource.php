@@ -18,6 +18,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Filters\Filter;
+use Filament\Forms\Components\Placeholder;
+use Filament\Tables\Columns\ViewColumn;
 
 class ContratoAgenciaResource extends Resource
 {
@@ -83,6 +85,10 @@ class ContratoAgenciaResource extends Resource
                 TextColumn::make('agencia.nombre')->label('Agencia')->searchable(),
                 TextColumn::make('fecha_inicio')->label('Inicio del contrato'),
                 TextColumn::make('fecha_fin')->label('Fin del contrato'),
+                ViewColumn::make('archivo_contrato')
+                    ->label('Contrato')
+                    ->view('components.descargar-contrato')
+                    ->state(fn ($record) => route('contratos.descargar', ['filename' => basename($record->archivo_contrato)])),
                 TextColumn::make('estado')
                     ->label('Estado')
                     ->badge()
@@ -95,10 +101,16 @@ class ContratoAgenciaResource extends Resource
             ])
             ->filters([
                 Filter::make('fecha_fin')
-                    ->label('Filtrar por fecha de vencimiento') // Este será el título del filtro
                     ->form([
+                        Placeholder::make('')
+                            ->content('Filtrar por Fecha de Vencimiento')
+                            ->extraAttributes([
+                                'class' => 'text-sm mb-0 font-semibold text-gray-700',
+                            ]),
+
                         DatePicker::make('created_from')
                             ->label('Desde'),
+
                         DatePicker::make('created_until')
                             ->label('Hasta'),
                     ])

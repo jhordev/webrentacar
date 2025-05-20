@@ -7,12 +7,27 @@
     --color-blueOscuro: #00142E;
     --color-yellowcolor: #FFD700;
     --color-textColor: #050B20;
+    --color-darkbg: #181A20;
+    --color-bgCard: #F9FBFC;
+    --color-bgCardDark: #1E2329;
 }
 
 .container-general{
-    @apply max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8;
+    @apply max-w-[1400px] mx-auto px-5 sm:px-6 lg:px-8;
+}
+
+.link-nav{
+    @apply w-full text-center md:w-auto text-neutral-700 text-[18px] md:text-[15px] font-normal capitalize leading-7 text-textColor dark:text-white hover:text-blue-300 transition-colors duration-300 ease-in-out
+}
+
+.btn-outline{
+    @apply text-neutral-700 text-[18px] w-full md:w-auto text-center md:text-[15px] font-normal capitalize leading-7 text-textColor dark:text-white hover:text-principalcolor transition-colors duration-300 ease-in-out outline-1  outline-white  rounded-2xl hover:bg-white py-2 md:py-1.5 px-6
+}
+
+.select-from{
+    @apply w-full px-4 py-2 md:py-3 rounded-lg border border-gray-200 text-gray-600 dark:text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all
 }
 
 body{
-    @apply font-display;
+    @apply font-display bg-white dark:bg-gray-900;
 }

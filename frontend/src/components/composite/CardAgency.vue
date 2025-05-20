@@ -7,8 +7,8 @@ defineProps({
 </script>
 
 <template>
-    <div class="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-        <div class="overflow-hidden rounded-t-lg relative border-b-1 border-gray-600 h-[240px] flex items-center justify-center bg-white dark:bg-gray-700">
+    <div class="w-full md:max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+        <div class="overflow-hidden rounded-t-lg relative border-b-1 border-gray-300 dark:border-gray-600 h-[240px] flex items-center justify-center bg-white dark:bg-gray-700">
             <a href="#" class="relative group w-full h-full rounded-lg flex items-center justify-center">
                 <img
                     class=" p-10 transform transition-transform rounded-lg duration-300 group-hover:scale-105 max-h-full max-w-full object-contain"

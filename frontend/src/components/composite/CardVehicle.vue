@@ -35,7 +35,7 @@ defineProps({
             </a>
         </div>
         <div class="p-5">
-            <div class="pb-3 border-b-1 border-gray-600">
+            <div class="pb-3 border-b-1  border-gray-300 dark:border-gray-600">
                 <span class="text-[14px] text-textColor dark:text-white">{{ id }}</span>
                 <a href="#">
                     <h5 class="mt-1 text-[20px] font-bold tracking-tight text-gray-900 dark:text-white">
@@ -46,7 +46,7 @@ defineProps({
                         precio.toLocaleString()
                     }}</h3>
             </div>
-            <div class="py-3 border-b-1 border-gray-600 flex justify-between gap-x-6 gap-y-2">
+            <div class="py-3 border-b-1  border-gray-300 dark:border-gray-600 flex justify-between gap-x-6 gap-y-2">
                 <div class="text-textColor dark:text-white flex flex-col items-center gap-1">
                     <IconGasStation class="w-6 h-6"/>
                     <span class="text-[14px] font-medium">{{ combustible }}</span>

@@ -57,7 +57,7 @@ const buscar = () => {
 </script>
 
 <template>
-    <div class="bg-bgCard/80 dark:bg-bgCardDark/80 p-4 md:p-6 rounded-3xl shadow-sm">
+    <div class="bg-bgCard dark:bg-bgCardDark/80 p-4 md:p-6 rounded-3xl shadow-sm">
         <div class="grid grid-cols-2 gap-4">
             <!-- Selector de Marca -->
             <div class="relative">

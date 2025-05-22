@@ -12,6 +12,23 @@
     --color-bgCardDark: #1E2329;
 }
 
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+    -webkit-text-fill-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
+    background-clip: content-box !important;
+}
+
+/* Para navegadores no WebKit */
+input.autofill {
+    background-color: rgba(107, 114, 128, 0.2) !important;
+    color: white !important;
+}
+
+
 .container-general{
     @apply max-w-[1400px] mx-auto px-5 sm:px-6 lg:px-8;
 }

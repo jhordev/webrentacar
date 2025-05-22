@@ -25,7 +25,7 @@ const agencias = [
     },
     {
         marca: 'KTM',
-        sucursales: ['Buenos Aires', 'Córdoba', 'Rosario', 'Mendoza'],
+        sucursales: ['Buenos Aires', 'Córdoba', 'Rosario'],
         imagen: imageKtm
     },
 ]

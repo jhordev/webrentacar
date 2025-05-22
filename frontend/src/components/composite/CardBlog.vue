@@ -11,16 +11,16 @@ defineProps({
 </script>
 
 <template>
-    <div class="w-full mb-10">
+    <div class="w-full ">
         <div class="mb-2 overflow-hidden rounded-[16px]">
             <img :src="image" :alt="title" class="w-full" />
         </div>
 
      <div>
-         <div class="flex gap-1.5 text-gray-500 dark:text-white mb-3 ">
+         <div class="flex gap-1.5 text-gray-500 dark:text-gray-300 mb-3 ">
              <span class="inline-block text-xs font-semibold leading-loose rounded bg-primary">Admin</span>
              <Dot />
-             <span class="inline-block text-xs font-semibold leading-loose  text-gray-500 dark:text-white rounded bg-primary">{{ date }}</span>
+             <span class="inline-block text-xs font-semibold leading-loose  rounded bg-primary">{{ date }}</span>
          </div>
          <h3>
              <a
@@ -30,7 +30,7 @@ defineProps({
                  {{ title }}
              </a>
          </h3>
-         <p class="text-base text-body-color dark:text-dark-6 line-clamp-2">
+         <p class="text-base text-body-color dark:text-white/80 line-clamp-2">
              {{ details }}
          </p>
      </div>

@@ -41,7 +41,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="w-full max-w-xs md:w-80">
+  <div class="w-full ">
     <div class="w-full">
       <div class="flex">
         <!-- Dropdown Categories -->

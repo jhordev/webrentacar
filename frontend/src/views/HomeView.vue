@@ -12,7 +12,7 @@ import BlogSection from "@/features/home/components/BlogSection.vue";
 </script>
 
 <template>
-    <Header/>
+    <Header  />
     <HeroSection/>
     <div class="container-general">
         <UsedMotos/>

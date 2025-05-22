@@ -5,7 +5,7 @@ import { MoveRight} from 'lucide-vue-next'
 
 <template>
     <section class="bg-hero relative">
-        <div class="absolute top-18  lg:top-20 inset-0 z-10 custom-gradient-top  hidden dark:block"></div>
+        <div class="absolute top-18 lg:top-20 inset-0 z-10 custom-gradient-top  hidden dark:block"></div>
         <div class="absolute inset-0 bg-black/60"></div>
         <div class="absolute inset-0 z-10 custom-gradient hidden dark:block"></div>
         <div class="grid container-general px-4 py-28 md:py-34 mx-auto relative z-10 gap-3 md:gap-10 lg:py-52 lg:grid-cols-12">

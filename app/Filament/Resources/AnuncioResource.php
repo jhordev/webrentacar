@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AnuncioResource\Pages;
 use App\Filament\Resources\AnuncioResource\RelationManagers;
 use App\Models\Anuncio;
+use App\Models\Estado;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists\Components\TextEntry;
@@ -40,9 +41,84 @@ class AnuncioResource extends Resource
         return $form
             ->schema([
                 Wizard::make([
+                    Step::make('Categoría del anuncio')
+                        ->schema([
+                            Select::make('categoria_anuncio_id')
+                                ->label('Categoría del anuncio')
+                                ->options(\App\Models\CategoriaAnuncio::pluck('nombre', 'id'))
+                                ->reactive()
+                                ->afterStateUpdated(fn (Set $set) => $set('tipo_id', null)),
+
+                            Select::make('tipo_id')
+                                ->label('Tipo de Vehículo')
+                                ->options(function (Get $get) {
+                                    $categoriaId = $get('categoria_anuncio_id');
+                                    if (!$categoriaId) return [];
+
+                                    $categoria = \App\Models\CategoriaAnuncio::find($categoriaId);
+                                    if (!$categoria) return [];
+
+                                    $map = [
+                                        'Motos Nuevas' => 'moto',
+                                        'Motos Usadas' => 'moto',
+                                        'Autos Nuevos' => 'auto',
+                                        'Autos Usados' => 'auto',
+                                    ];
+
+                                    $vehiculo = $map[$categoria->nombre] ?? null;
+                                    if (!$vehiculo) return [];
+
+                                    return \App\Models\TipoVehiculo::where('vehiculo', $vehiculo)
+                                        ->pluck('tipo', 'id');
+                                })
+                                ->searchable()
+                                ->required(),
+                        ]),
                     Step::make('Datos del vehiculo')
                         ->schema([
+                            Select::make('marca_temp')
+                                ->label('Marca')
+                                ->placeholder('Selecciona una marca')
+                                ->options(function (Get $get) {
+                                    $categoriaId = $get('categoria_anuncio_id');
+                                    if (!$categoriaId) return [];
 
+                                    // Validar existencia y que tenga campo 'nombre'
+                                    $categoria = \App\Models\CategoriaAnuncio::find($categoriaId);
+                                    if (!$categoria || !isset($categoria->nombre)) return [];
+
+                                    $map = [
+                                        'Motos Nuevas' => 'moto',
+                                        'Motos Usadas' => 'moto',
+                                        'Autos Nuevos' => 'auto',
+                                        'Autos Usados' => 'auto',
+                                    ];
+
+                                    $tipoVehiculo = $map[$categoria->nombre] ?? null;
+                                    if (!$tipoVehiculo) return [];
+
+                                    return \App\Models\MarcaVehiculo::where('tipo_vehiculo', $tipoVehiculo)
+                                        ->pluck('marca', 'id')
+                                        ->toArray();
+                                })
+                                ->searchable()
+                                ->reactive()
+                                ->afterStateUpdated(fn (Set $set) => $set('modelo_id', null))
+                                ->dehydrated(false),
+
+
+                            Select::make('modelo_id')
+                                ->label('Modelo')
+                                ->placeholder('Selecciona un modelo')
+                                ->options(function (Get $get) {
+                                    if (!$get('marca_temp')) return [];
+
+                                    return \App\Models\ModeloVehiculo::where('marca_id', $get('marca_temp'))
+                                        ->pluck('modelo', 'id');
+                                })
+                                ->searchable()
+                                ->required()
+                                ->reactive(),
                         ]),
                     Step::make('Fotos del vehiculo')
                         ->schema([
@@ -77,25 +153,29 @@ class AnuncioResource extends Resource
                                     TextInput::make('precio')->required()->numeric()->columnSpan(2),
                                     TextInput::make('link_video')->columnSpan(2),
 
-                                    Select::make('estado_id')
+                                    Select::make('estado_temp')
                                         ->label('Estado')
-                                        ->relationship('estadoUbicacion', 'nombre') // si tienes modelo Estado con campo 'nombre'
-                                        ->required()
+                                        ->options(Estado::pluck('nombre', 'id'))
+                                        ->placeholder('Selecciona un estado')
                                         ->reactive()
                                         ->afterStateUpdated(fn (Set $set) => $set('municipio_id', null))
+                                        ->dehydrated(false)
                                         ->columnSpan(2),
                                     Select::make('municipio_id')
                                         ->label('Municipio')
+                                        ->placeholder('Selecciona un municipio')
                                         ->options(function (Get $get) {
-                                            if (!$get('estado_id')) {
+                                            if (!$get('estado_temp')) {
                                                 return [];
                                             }
-                                            return \App\Models\Municipio::where('estado_id', $get('estado_id'))
+                                            return \App\Models\Municipio::where('estado_id', $get('estado_temp'))
                                                 ->pluck('nombre', 'id')
                                                 ->toArray();
                                         })
                                         ->required()
-                                        ->searchable()->columnSpan(2),
+                                        ->searchable()
+                                        ->reactive()
+                                        ->columnSpan(2),
                                     Select::make('vendedor_id')
                                         ->label('Seleccione el vendedor de anuncio')
                                         ->relationship('vendedor', 'nombre')

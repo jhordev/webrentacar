@@ -33,6 +33,10 @@ input.autofill {
     @apply max-w-[1400px] mx-auto px-5 sm:px-6 lg:px-8;
 }
 
+.container-about{
+    @apply max-w-[1200px] mx-auto px-5 sm:px-6 lg:px-8;
+}
+
 .link-nav{
     @apply w-full text-center md:w-auto text-[18px] md:text-[15px] font-normal capitalize leading-7 text-textColor dark:text-white hover:text-blue-300 transition-colors duration-300 ease-in-out
 }

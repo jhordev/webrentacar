@@ -18,11 +18,6 @@ class Agencia extends Model
         return $this->hasMany(ContratoAgencia::class, 'agencia_id');
     }
 
-    public function estado()
-    {
-        return $this->belongsTo(Estado::class, 'estado_id');
-    }
-
     public function municipio()
     {
         return $this->belongsTo(Municipio::class, 'municipio_id');

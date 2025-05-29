@@ -79,27 +79,28 @@ class AgenciaResource extends Resource
                             ])
                             ->required(),
 
-                        Select::make('estado_id')
+                        Select::make('estado_temp')
                             ->label('Estado')
-                            ->relationship('estado', 'nombre')
+                            ->options(Estado::pluck('nombre', 'id'))
                             ->placeholder('Selecciona un estado')
-                            ->required()
                             ->reactive()
-                            ->afterStateUpdated(fn (Set $set) => $set('municipio_id', null)),
+                            ->afterStateUpdated(fn (Set $set) => $set('municipio_id', null))
+                            ->dehydrated(false),
 
                         Select::make('municipio_id')
                             ->label('Municipio')
                             ->placeholder('Selecciona un municipio')
                             ->options(function (Get $get) {
-                                if (!$get('estado_id')) {
+                                if (!$get('estado_temp')) {
                                     return [];
                                 }
-                                return \App\Models\Municipio::where('estado_id', $get('estado_id'))
+                                return \App\Models\Municipio::where('estado_id', $get('estado_temp'))
                                     ->pluck('nombre', 'id')
                                     ->toArray();
                             })
                             ->required()
-                            ->searchable(),
+                            ->searchable()
+                            ->reactive(),
 
                         Section::make('Contacto de la empresa')
                             ->columns(3)
@@ -208,7 +209,9 @@ class AgenciaResource extends Resource
                 TextColumn::make('nombre')->searchable(),
                 TextColumn::make('direccion'),
                 TextColumn::make('tel_contacto')->label('Contacto'),
-                TextColumn::make('estado.nombre')->label('Estado')->searchable(),
+                TextColumn::make('municipio.estado.nombre')
+                    ->label('Estado')
+                    ->searchable(),
                 TextColumn::make('municipio.nombre')->label('Municipio')->searchable(),
                 TextColumn::make('estado')
                     ->label('Estado')

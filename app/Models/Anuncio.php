@@ -20,7 +20,6 @@ class Anuncio extends Model
         'vendedor_id',
         'agencia_id',
         'precio',
-        'estado_id',
         'municipio_id',
         'link_video',
         'fecha_publicacion',

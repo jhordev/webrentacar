@@ -4,6 +4,7 @@ import Header from "@/components/composite/Header.vue";
 import PageHeader from "@/components/composite/PageHeader.vue";
 import AboutCompany from "@/features/about/AboutCompany.vue";
 import MisionVision from "@/features/about/MisionVision.vue";
+import WhyChooseUs from "@/features/home/components/WhyChooseUs.vue";
 </script>
 
 <template>
@@ -11,6 +12,7 @@ import MisionVision from "@/features/about/MisionVision.vue";
     <main class="mt-16 md:mt-20">
         <AboutCompany/>
         <MisionVision/>
+        <WhyChooseUs class="container-general"/>
     </main>
     <Footer/>
 </template>

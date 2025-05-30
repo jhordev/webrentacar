@@ -47,78 +47,154 @@ class AnuncioResource extends Resource
                                 ->label('Categoría del anuncio')
                                 ->options(\App\Models\CategoriaAnuncio::pluck('nombre', 'id'))
                                 ->reactive()
+                                ->required()
                                 ->afterStateUpdated(fn (Set $set) => $set('tipo_id', null)),
-
-                            Select::make('tipo_id')
-                                ->label('Tipo de Vehículo')
-                                ->options(function (Get $get) {
-                                    $categoriaId = $get('categoria_anuncio_id');
-                                    if (!$categoriaId) return [];
-
-                                    $categoria = \App\Models\CategoriaAnuncio::find($categoriaId);
-                                    if (!$categoria) return [];
-
-                                    $map = [
-                                        'Motos Nuevas' => 'moto',
-                                        'Motos Usadas' => 'moto',
-                                        'Autos Nuevos' => 'auto',
-                                        'Autos Usados' => 'auto',
-                                    ];
-
-                                    $vehiculo = $map[$categoria->nombre] ?? null;
-                                    if (!$vehiculo) return [];
-
-                                    return \App\Models\TipoVehiculo::where('vehiculo', $vehiculo)
-                                        ->pluck('tipo', 'id');
-                                })
-                                ->searchable()
-                                ->required(),
                         ]),
                     Step::make('Datos del vehiculo')
                         ->schema([
-                            Select::make('marca_temp')
-                                ->label('Marca')
-                                ->placeholder('Selecciona una marca')
-                                ->options(function (Get $get) {
-                                    $categoriaId = $get('categoria_anuncio_id');
-                                    if (!$categoriaId) return [];
+                            Section::make()->columns(6)->schema([
+                                Select::make('tipo_id')
+                                    ->label('Tipo de Vehículo')
+                                    ->options(function (Get $get) {
+                                        $categoriaId = $get('categoria_anuncio_id');
+                                        if (!$categoriaId) return [];
 
-                                    // Validar existencia y que tenga campo 'nombre'
-                                    $categoria = \App\Models\CategoriaAnuncio::find($categoriaId);
-                                    if (!$categoria || !isset($categoria->nombre)) return [];
+                                        $categoria = \App\Models\CategoriaAnuncio::find($categoriaId);
+                                        if (!$categoria) return [];
 
-                                    $map = [
-                                        'Motos Nuevas' => 'moto',
-                                        'Motos Usadas' => 'moto',
-                                        'Autos Nuevos' => 'auto',
-                                        'Autos Usados' => 'auto',
-                                    ];
+                                        $map = [
+                                            'Motos Nuevas' => 'moto',
+                                            'Motos Usadas' => 'moto',
+                                            'Autos Nuevos' => 'auto',
+                                            'Autos Usados' => 'auto',
+                                        ];
 
-                                    $tipoVehiculo = $map[$categoria->nombre] ?? null;
-                                    if (!$tipoVehiculo) return [];
+                                        $vehiculo = $map[$categoria->nombre] ?? null;
+                                        if (!$vehiculo) return [];
 
-                                    return \App\Models\MarcaVehiculo::where('tipo_vehiculo', $tipoVehiculo)
-                                        ->pluck('marca', 'id')
-                                        ->toArray();
-                                })
-                                ->searchable()
-                                ->reactive()
-                                ->afterStateUpdated(fn (Set $set) => $set('modelo_id', null))
-                                ->dehydrated(false),
+                                        return \App\Models\TipoVehiculo::where('vehiculo', $vehiculo)
+                                            ->pluck('tipo', 'id');
+                                    })
+                                    ->searchable()
+                                    ->required()
+                                    ->columnSpan(2),
+                                Select::make('marca_temp')
+                                    ->label('Marca')
+                                    ->placeholder('Selecciona una marca')
+                                    ->options(function (Get $get) {
+                                        $categoriaId = $get('categoria_anuncio_id');
+                                        if (!$categoriaId) return [];
 
+                                        // Validar existencia y que tenga campo 'nombre'
+                                        $categoria = \App\Models\CategoriaAnuncio::find($categoriaId);
+                                        if (!$categoria || !isset($categoria->nombre)) return [];
 
-                            Select::make('modelo_id')
-                                ->label('Modelo')
-                                ->placeholder('Selecciona un modelo')
-                                ->options(function (Get $get) {
-                                    if (!$get('marca_temp')) return [];
+                                        $map = [
+                                            'Motos Nuevas' => 'moto',
+                                            'Motos Usadas' => 'moto',
+                                            'Autos Nuevos' => 'auto',
+                                            'Autos Usados' => 'auto',
+                                        ];
 
-                                    return \App\Models\ModeloVehiculo::where('marca_id', $get('marca_temp'))
-                                        ->pluck('modelo', 'id');
-                                })
-                                ->searchable()
-                                ->required()
-                                ->reactive(),
+                                        $tipoVehiculo = $map[$categoria->nombre] ?? null;
+                                        if (!$tipoVehiculo) return [];
+
+                                        return \App\Models\MarcaVehiculo::where('tipo_vehiculo', $tipoVehiculo)
+                                            ->pluck('marca', 'id')
+                                            ->toArray();
+                                    })
+                                    ->searchable()
+                                    ->reactive()
+                                    ->afterStateUpdated(fn (Set $set) => $set('modelo_id', null))
+                                    ->dehydrated(false)
+                                    ->columnSpan(2),
+
+                                Select::make('modelo_id')
+                                    ->label('Modelo')
+                                    ->placeholder('Selecciona un modelo')
+                                    ->options(function (Get $get) {
+                                        if (!$get('marca_temp')) return [];
+
+                                        return \App\Models\ModeloVehiculo::where('marca_id', $get('marca_temp'))
+                                            ->pluck('modelo', 'id');
+                                    })
+                                    ->searchable()
+                                    ->required()
+                                    ->reactive()
+                                    ->columnSpan(2),
+                                TextInput::make('anio')
+                                    ->label('Año')
+                                    ->placeholder('Ej: 2021')
+                                    ->numeric()
+                                    ->required()
+                                    ->columnSpan(2),
+                                Select::make('combustible')
+                                    ->label('Combustible')
+                                    ->placeholder('Selecciona una opción')
+                                    ->options([
+                                        'gasolina' => 'Gasolina',
+                                        'diesel' => 'Diesel',
+                                        'electrico' => 'Eléctrico',
+                                        'hidrico' => 'Hidrico',
+                                    ])
+                                    ->required()
+                                    ->columnSpan(2),
+                                TextInput::make('motor')
+                                    ->label('Motor(Cilindros)')
+                                    ->placeholder('Ej: 1.6')
+                                    ->required()
+                                    ->columnSpan(2),
+                                TextInput::make('Color')
+                                    ->label('Ingrese el color')
+                                    ->required()
+                                    ->columnSpan(2),
+                                Select::make('Vestidura')
+                                    ->label('Seleccione vestidura')
+                                    ->placeholder('Seleccione Vestidura')
+                                    ->options([
+                                        'tela' => 'Tela',
+                                        'piel' => 'Piel',
+                                    ])
+                                    ->required()
+                                    ->columnSpan(2),
+                                TextInput::make('kilometraje')
+                                    ->label('Kilometraje')
+                                    ->placeholder('Ej: 100000')
+                                    ->numeric()
+                                    ->required()
+                                    ->columnSpan(2),
+                                TextInput::make('num_puerta')
+                                    ->label('Números de Puertas')
+                                    ->placeholder('Ej: 5')
+                                    ->numeric()
+                                    ->required()
+                                    ->columnSpan(2),
+                                TextInput::make('num_pasajero')
+                                    ->label('Números de Pasajeros')
+                                    ->placeholder('Ej: 2')
+                                    ->numeric()
+                                    ->required()
+                                    ->columnSpan(2),
+                                Select::make('vidrios')
+                                    ->label('Tipo de vidrios')
+                                    ->placeholder('Seleccione Tipo Vidrios')
+                                    ->options([
+                                        'electrico' => 'Eléctrico',
+                                        'manual' => 'Manual',
+                                    ])
+                                    ->required()
+                                    ->columnSpan(2),
+                                Select::make('condicion')
+                                    ->label('Condición de vehículo')
+                                    ->placeholder('Seleccione condición de vehículo')
+                                    ->options([
+                                        'usado' => 'Usado',
+                                        'seminuevo' => 'Seminuevo',
+                                    ])
+                                    ->required()
+                                    ->columnSpan(2),
+                            ])
+
                         ]),
                     Step::make('Fotos del vehiculo')
                         ->schema([

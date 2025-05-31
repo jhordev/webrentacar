@@ -6,6 +6,8 @@ use App\Filament\Resources\AnuncioResource\Pages;
 use App\Filament\Resources\AnuncioResource\RelationManagers;
 use App\Models\Anuncio;
 use App\Models\Estado;
+use App\Models\MarcaVehiculo;
+use App\Models\ModeloVehiculo;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists\Components\TextEntry;
@@ -36,8 +38,29 @@ class AnuncioResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-megaphone';
 
+
     public static function form(Form $form): Form
     {
+
+        $actualization = function (Set $set, Get $get) {
+            $marcaId = $get('marca_temp');
+            $modeloId = $get('modelo_id');
+            $anio = $get('anio');
+
+            $modelo = $modeloId ? ModeloVehiculo::find($modeloId) : null;
+            if ($modelo && $modelo->marca_id != $marcaId) {
+                $set('modelo_id', null);
+            }
+
+            $marca = $marcaId ? MarcaVehiculo::find($marcaId)?->marca : null;
+            $modeloNombre = $modeloId ? ModeloVehiculo::find($modeloId)?->modelo : null;
+
+            if ($marca && $modeloNombre && $anio) {
+                $set('titulo', "$marca $modeloNombre $anio");
+            }
+        };
+
+
         return $form
             ->schema([
                 Wizard::make([
@@ -48,7 +71,16 @@ class AnuncioResource extends Resource
                                 ->options(\App\Models\CategoriaAnuncio::pluck('nombre', 'id'))
                                 ->reactive()
                                 ->required()
-                                ->afterStateUpdated(fn (Set $set) => $set('tipo_id', null)),
+                                ->afterStateUpdated(function (Set $set, Get $get) {
+                                    $set('tipo_id', null);
+
+                                    $categoria = \App\Models\CategoriaAnuncio::find($get('categoria_anuncio_id'));
+                                    if ($categoria && $categoria->nombre === 'Motos Nuevas') {
+                                        $set('condicion', 'nuevo');
+                                    } else {
+                                        $set('condicion', null);
+                                    }
+                                }),
                         ]),
                     Step::make('Datos del vehiculo')
                         ->schema([
@@ -105,7 +137,7 @@ class AnuncioResource extends Resource
                                     })
                                     ->searchable()
                                     ->reactive()
-                                    ->afterStateUpdated(fn (Set $set) => $set('modelo_id', null))
+                                    ->afterStateUpdated($actualization)
                                     ->dehydrated(false)
                                     ->columnSpan(2),
 
@@ -120,24 +152,39 @@ class AnuncioResource extends Resource
                                     })
                                     ->searchable()
                                     ->required()
+                                    ->afterStateUpdated($actualization)
                                     ->reactive()
                                     ->columnSpan(2),
+
                                 TextInput::make('anio')
                                     ->label('Año')
                                     ->placeholder('Ej: 2021')
                                     ->numeric()
+                                    ->afterStateUpdated($actualization)
                                     ->required()
                                     ->columnSpan(2),
                                 Select::make('combustible')
                                     ->label('Combustible')
                                     ->placeholder('Selecciona una opción')
-                                    ->options([
-                                        'gasolina' => 'Gasolina',
-                                        'diesel' => 'Diesel',
-                                        'electrico' => 'Eléctrico',
-                                        'hidrico' => 'Hidrico',
-                                    ])
+                                    ->options(function (Get $get) {
+                                        $categoria = \App\Models\CategoriaAnuncio::find($get('categoria_anuncio_id'));
+
+                                        if ($categoria && $categoria->nombre === 'Autos Usados') {
+                                            return [
+                                                'gasolina' => 'Gasolina',
+                                                'diesel' => 'Diesel',
+                                                'electrico' => 'Eléctrico',
+                                                'hidrico' => 'Hidrico',
+                                            ];
+                                        }
+
+                                        return [
+                                            'gasolina' => 'Gasolina',
+                                            'electrico' => 'Eléctrico',
+                                        ];
+                                    })
                                     ->required()
+                                    ->reactive()
                                     ->columnSpan(2),
                                 TextInput::make('motor')
                                     ->label('Motor(Cilindros)')
@@ -156,7 +203,11 @@ class AnuncioResource extends Resource
                                         'piel' => 'Piel',
                                     ])
                                     ->required()
-                                    ->columnSpan(2),
+                                    ->columnSpan(2)
+                                    ->visible(function (Get $get) {
+                                        $categoria = \App\Models\CategoriaAnuncio::find($get('categoria_anuncio_id'));
+                                        return $categoria && $categoria->nombre === 'Autos Usados';
+                                    }),
                                 TextInput::make('kilometraje')
                                     ->label('Kilometraje')
                                     ->placeholder('Ej: 100000')
@@ -168,13 +219,21 @@ class AnuncioResource extends Resource
                                     ->placeholder('Ej: 5')
                                     ->numeric()
                                     ->required()
-                                    ->columnSpan(2),
+                                    ->columnSpan(2)
+                                    ->visible(function (Get $get) {
+                                        $categoria = \App\Models\CategoriaAnuncio::find($get('categoria_anuncio_id'));
+                                        return $categoria && $categoria->nombre === 'Autos Usados';
+                                    }),
                                 TextInput::make('num_pasajero')
                                     ->label('Números de Pasajeros')
                                     ->placeholder('Ej: 2')
                                     ->numeric()
                                     ->required()
-                                    ->columnSpan(2),
+                                    ->columnSpan(2)
+                                    ->visible(function (Get $get) {
+                                        $categoria = \App\Models\CategoriaAnuncio::find($get('categoria_anuncio_id'));
+                                        return $categoria && $categoria->nombre === 'Autos Usados';
+                                    }),
                                 Select::make('vidrios')
                                     ->label('Tipo de vidrios')
                                     ->placeholder('Seleccione Tipo Vidrios')
@@ -183,7 +242,11 @@ class AnuncioResource extends Resource
                                         'manual' => 'Manual',
                                     ])
                                     ->required()
-                                    ->columnSpan(2),
+                                    ->columnSpan(2)
+                                    ->visible(function (Get $get) {
+                                        $categoria = \App\Models\CategoriaAnuncio::find($get('categoria_anuncio_id'));
+                                        return $categoria && $categoria->nombre === 'Autos Usados';
+                                    }),
                                 Select::make('condicion')
                                     ->label('Condición de vehículo')
                                     ->placeholder('Seleccione condición de vehículo')
@@ -192,7 +255,15 @@ class AnuncioResource extends Resource
                                         'seminuevo' => 'Seminuevo',
                                     ])
                                     ->required()
-                                    ->columnSpan(2),
+                                    ->columnSpan(2)
+                                    ->visible(function (Get $get) {
+                                        $categoria = \App\Models\CategoriaAnuncio::find($get('categoria_anuncio_id'));
+                                        return !$categoria || $categoria->nombre !== 'Motos Nuevas';
+                                    })
+                                    ->default(function (Get $get) {
+                                        $categoria = \App\Models\CategoriaAnuncio::find($get('categoria_anuncio_id'));
+                                        return $categoria && $categoria->nombre === 'Motos Nuevas' ? 'nuevo' : null;
+                                    }),
                             ])
 
                         ]),
@@ -209,17 +280,15 @@ class AnuncioResource extends Resource
                                 ->disabled()
                                 ->dehydrated(false)
                                 ->visibleOn('edit'),
-                            Select::make('id_categoria')
-                                ->label('Seleccione la categoría de anuncio')
-                                ->relationship('categoria', 'nombre')
-                                ->required()
-                                ->reactive()
-                                ->disabledOn('edit'),
 
                             Section::make('Información del anuncio')
                                 ->columns(6)
                                 ->schema([
-                                    TextInput::make('titulo')->required()->columnSpanFull(),
+                                    TextInput::make('titulo')
+                                        ->label('Título')
+                                        ->required()
+                                        ->columnSpanFull()
+                                        ->reactive(),
                                     Textarea::make('descripcion')->required()->columnSpanFull(),
                                     Select::make('tipo')
                                         ->options([

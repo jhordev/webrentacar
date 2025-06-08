@@ -11,6 +11,7 @@ use App\Models\ModeloVehiculo;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
@@ -66,7 +67,7 @@ class AnuncioResource extends Resource
                 Wizard::make([
                     Step::make('Categoría del anuncio')
                         ->schema([
-                            Select::make('categoria_anuncio_id')
+                            Select::make('id_categoria')
                                 ->label('Categoría del anuncio')
                                 ->options(\App\Models\CategoriaAnuncio::pluck('nombre', 'id'))
                                 ->reactive()
@@ -74,7 +75,7 @@ class AnuncioResource extends Resource
                                 ->afterStateUpdated(function (Set $set, Get $get) {
                                     $set('tipo_id', null);
 
-                                    $categoria = \App\Models\CategoriaAnuncio::find($get('categoria_anuncio_id'));
+                                    $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
                                     if ($categoria && $categoria->nombre === 'Motos Nuevas') {
                                         $set('condicion', 'nuevo');
                                     } else {
@@ -88,7 +89,7 @@ class AnuncioResource extends Resource
                                 Select::make('tipo_id')
                                     ->label('Tipo de Vehículo')
                                     ->options(function (Get $get) {
-                                        $categoriaId = $get('categoria_anuncio_id');
+                                        $categoriaId = $get('id_categoria');
                                         if (!$categoriaId) return [];
 
                                         $categoria = \App\Models\CategoriaAnuncio::find($categoriaId);
@@ -114,7 +115,7 @@ class AnuncioResource extends Resource
                                     ->label('Marca')
                                     ->placeholder('Selecciona una marca')
                                     ->options(function (Get $get) {
-                                        $categoriaId = $get('categoria_anuncio_id');
+                                        $categoriaId = $get('id_categoria');
                                         if (!$categoriaId) return [];
 
                                         // Validar existencia y que tenga campo 'nombre'
@@ -167,7 +168,7 @@ class AnuncioResource extends Resource
                                     ->label('Combustible')
                                     ->placeholder('Selecciona una opción')
                                     ->options(function (Get $get) {
-                                        $categoria = \App\Models\CategoriaAnuncio::find($get('categoria_anuncio_id'));
+                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
 
                                         if ($categoria && $categoria->nombre === 'Autos Usados') {
                                             return [
@@ -205,7 +206,7 @@ class AnuncioResource extends Resource
                                     ->required()
                                     ->columnSpan(2)
                                     ->visible(function (Get $get) {
-                                        $categoria = \App\Models\CategoriaAnuncio::find($get('categoria_anuncio_id'));
+                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
                                         return $categoria && $categoria->nombre === 'Autos Usados';
                                     }),
                                 TextInput::make('kilometraje')
@@ -221,7 +222,7 @@ class AnuncioResource extends Resource
                                     ->required()
                                     ->columnSpan(2)
                                     ->visible(function (Get $get) {
-                                        $categoria = \App\Models\CategoriaAnuncio::find($get('categoria_anuncio_id'));
+                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
                                         return $categoria && $categoria->nombre === 'Autos Usados';
                                     }),
                                 TextInput::make('num_pasajero')
@@ -231,7 +232,7 @@ class AnuncioResource extends Resource
                                     ->required()
                                     ->columnSpan(2)
                                     ->visible(function (Get $get) {
-                                        $categoria = \App\Models\CategoriaAnuncio::find($get('categoria_anuncio_id'));
+                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
                                         return $categoria && $categoria->nombre === 'Autos Usados';
                                     }),
                                 Select::make('vidrios')
@@ -244,32 +245,53 @@ class AnuncioResource extends Resource
                                     ->required()
                                     ->columnSpan(2)
                                     ->visible(function (Get $get) {
-                                        $categoria = \App\Models\CategoriaAnuncio::find($get('categoria_anuncio_id'));
+                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
                                         return $categoria && $categoria->nombre === 'Autos Usados';
                                     }),
                                 Select::make('condicion')
                                     ->label('Condición de vehículo')
                                     ->placeholder('Seleccione condición de vehículo')
-                                    ->options([
-                                        'usado' => 'Usado',
-                                        'seminuevo' => 'Seminuevo',
-                                    ])
-                                    ->required()
-                                    ->columnSpan(2)
-                                    ->visible(function (Get $get) {
-                                        $categoria = \App\Models\CategoriaAnuncio::find($get('categoria_anuncio_id'));
-                                        return !$categoria || $categoria->nombre !== 'Motos Nuevas';
+                                    ->options(function (Get $get) {
+                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
+                                        return ($categoria && $categoria->nombre === 'Motos Nuevas')
+                                            ? ['nuevo' => 'Nuevo']
+                                            : ['usado' => 'Usado', 'seminuevo' => 'Seminuevo'];
                                     })
                                     ->default(function (Get $get) {
-                                        $categoria = \App\Models\CategoriaAnuncio::find($get('categoria_anuncio_id'));
-                                        return $categoria && $categoria->nombre === 'Motos Nuevas' ? 'nuevo' : null;
+                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
+                                        return ($categoria && $categoria->nombre === 'Motos Nuevas') ? 'nuevo' : null;
+                                    })
+                                    ->required()
+                                    ->dehydrated(true)
+                                    ->columnSpan(2)
+                                    ->visible(function (Get $get) {
+                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
+                                        // Oculta el select si es "Motos Nuevas"
+                                        return !$categoria || $categoria->nombre !== 'Motos Nuevas';
                                     }),
+                                Hidden::make('condicion')
+                                    ->default('nuevo')
+                                    ->dehydrated(true)
+                                    ->visible(function (Get $get) {
+                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
+                                        return $categoria && $categoria->nombre === 'Motos Nuevas';
+                                    }),
+
                             ])
 
                         ]),
                     Step::make('Fotos del vehiculo')
                         ->schema([
-                            // ...
+                            FileUpload::make('imagenes')
+                                ->label('Fotos del vehículo')
+                                ->multiple()
+                                ->maxFiles(16)
+                                ->reorderable()
+                                ->image()
+                                ->directory('anuncios/fotos')
+                                ->preserveFilenames()
+                                ->required()
+                                ->columnSpanFull(),
                         ]),
                     Step::make('Datos del anuncio')
                         ->schema([
@@ -324,20 +346,28 @@ class AnuncioResource extends Resource
                                     Select::make('vendedor_id')
                                         ->label('Seleccione el vendedor de anuncio')
                                         ->relationship('vendedor', 'nombre')
-                                        ->visible(fn (Forms\Get $get) =>
-                                        in_array($get('id_categoria'), [
-                                            1,
-                                            2,
-                                        ])
-                                        )
-                                        ->required()->columnSpan(2),
+                                        ->visible(function (Forms\Get $get) {
+                                            $categoriaId = $get('id_categoria');
+                                            if (!$categoriaId) return false;
+
+                                            $categoria = \App\Models\CategoriaAnuncio::find($categoriaId);
+                                            return $categoria && in_array($categoria->nombre, ['Motos Usadas', 'Autos Usados']);
+                                        })
+                                        ->required()
+                                        ->columnSpan(2),
+
                                     Select::make('agencia_id')
                                         ->label('Seleccione la agencia de anuncio')
                                         ->relationship('agencia', 'nombre')
-                                        ->visible(fn (Forms\Get $get) =>
-                                            $get('id_categoria') == 3
-                                        )
-                                        ->required()->columnSpan(2),
+                                        ->visible(function (Forms\Get $get) {
+                                            $categoriaId = $get('id_categoria');
+                                            if (!$categoriaId) return false;
+
+                                            $categoria = \App\Models\CategoriaAnuncio::find($categoriaId);
+                                            return $categoria && in_array($categoria->nombre, ['Motos Nuevas', 'Autos Nuevos']);
+                                        })
+                                        ->required()
+                                        ->columnSpan(2),
                                     Toggle::make('estado')
                                         ->label('Estado')
                                         ->onColor('success')
@@ -345,7 +375,7 @@ class AnuncioResource extends Resource
                                         ->visibleOn('edit')
                                 ])
                         ])
-                ])->columnSpanFull()->submitAction(new HtmlString('<button type="submit">Submit</button>'))
+                ])->columnSpanFull()
             ]);
     }
 

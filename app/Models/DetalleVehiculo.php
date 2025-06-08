@@ -8,13 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class DetalleVehiculo extends Model
 {
     use HasFactory;
-    protected $table = 'detalle_vehiculos';
+    protected $table = 'detalles_vehiculo';
 
     protected $fillable = [
         'anuncio_id',
         'modelo_id',
         'anio',
-        'tipo',
+        'tipo_id',
         'combustible',
         'motor',
         'color',

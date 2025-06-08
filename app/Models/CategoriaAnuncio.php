@@ -9,7 +9,7 @@ class CategoriaAnuncio extends Model
 {
     use HasFactory;
     protected $table = 'categoria_anuncio';
-    protected $fillable = ['nombre'];
+    protected $fillable = ['id','nombre'];
 
     public function anuncios()
     {

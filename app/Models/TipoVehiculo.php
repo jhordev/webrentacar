@@ -12,6 +12,7 @@ class TipoVehiculo extends Model
     protected $table = 'tipo_vehiculo';
 
     protected $fillable = [
+        'id',
         'tipo',
         'vehiculo',
     ];

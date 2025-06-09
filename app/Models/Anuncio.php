@@ -32,6 +32,10 @@ class Anuncio extends Model
         'precio' => 'decimal:2',
     ];
 
+    protected $attributes = [
+      'estado' => 1,
+    ];
+
     // Relaciones
 
     public function categoria()

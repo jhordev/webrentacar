@@ -4,8 +4,7 @@ namespace App\Filament\Resources\AnuncioResource\Pages;
 
 use App\Filament\Resources\AnuncioResource;
 use App\Models\CategoriaAnuncio;
-use App\Models\Estado;
-use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Notifications\Actions\Action as NotificationAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
@@ -13,6 +12,7 @@ use \App\Filament\Resources\CategoriaAnuncioResource;
 class ListAnuncios extends ListRecords
 {
     protected static string $resource = AnuncioResource::class;
+
 
     protected function getHeaderActions(): array
     {
@@ -33,8 +33,13 @@ class ListAnuncios extends ListRecords
         }
 
         return [
-            Actions\CreateAction::make()
-                ->visible(!$noHayCategory),
+            Action::make('create')
+                ->label('Crear Anuncio')
+                ->url(route('filament.admin.pages.crear-anuncio-wizard'))
+                ->icon('heroicon-o-plus')
+                ->visible(!$noHayCategory)
+                ->button(),
         ];
+
     }
 }

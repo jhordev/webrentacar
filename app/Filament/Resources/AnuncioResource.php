@@ -3,16 +3,18 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\AnuncioResource\Pages;
-use App\Filament\Resources\AnuncioResource\RelationManagers;
 use App\Models\Anuncio;
 use App\Models\Estado;
 use App\Models\MarcaVehiculo;
 use App\Models\ModeloVehiculo;
+use App\Models\DetalleVehiculo;
+use App\Models\FotoAnuncio;
+
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Get;
@@ -23,12 +25,8 @@ use Filament\Forms\Components\Toggle;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\Wizard;
-use Filament\Forms\Components\Wizard\Step;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Hidden;
-use Illuminate\Support\HtmlString;
+
 class AnuncioResource extends Resource
 {
     protected static ?string $model = Anuncio::class;
@@ -39,10 +37,8 @@ class AnuncioResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-megaphone';
 
-
     public static function form(Form $form): Form
     {
-
         $actualization = function (Set $set, Get $get) {
             $marcaId = $get('marca_temp');
             $modeloId = $get('modelo_id');
@@ -61,321 +57,231 @@ class AnuncioResource extends Resource
             }
         };
 
-
         return $form
             ->schema([
-                Wizard::make([
-                    Step::make('Categoría del anuncio')
-                        ->schema([
-                            Select::make('id_categoria')
-                                ->label('Categoría del anuncio')
-                                ->options(\App\Models\CategoriaAnuncio::pluck('nombre', 'id'))
-                                ->reactive()
-                                ->required()
-                                ->afterStateUpdated(function (Set $set, Get $get) {
-                                    $set('tipo_id', null);
+                Section::make('Categoría del anuncio')
+                    ->schema([
+                        Select::make('id_categoria')
+                            ->disabled()
+                            ->label('Categoría del anuncio')
+                            ->options(\App\Models\CategoriaAnuncio::pluck('nombre', 'id'))
+                            ->reactive()
+                            ->required()
+                            ->afterStateUpdated(function (Set $set, Get $get) {
+                                $set('tipo_id', null);
 
-                                    $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
-                                    if ($categoria && $categoria->nombre === 'Motos Nuevas') {
-                                        $set('condicion', 'nuevo');
-                                    } else {
-                                        $set('condicion', null);
-                                    }
-                                }),
-                        ]),
-                    Step::make('Datos del vehiculo')
-                        ->schema([
-                            Section::make()->columns(6)->schema([
-                                Select::make('tipo_id')
-                                    ->label('Tipo de Vehículo')
-                                    ->options(function (Get $get) {
-                                        $categoriaId = $get('id_categoria');
-                                        if (!$categoriaId) return [];
+                                $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
+                                if ($categoria && $categoria->nombre === 'Motos Nuevas') {
+                                    $set('condicion', 'nuevo');
+                                } else {
+                                    $set('condicion', null);
+                                }
+                            }),
+                    ]),
 
-                                        $categoria = \App\Models\CategoriaAnuncio::find($categoriaId);
-                                        if (!$categoria) return [];
+                Section::make('Datos del anuncio')
+                    ->columns(6)
+                    ->schema([
+                        TextInput::make('titulo')
+                            ->required()
+                            ->columnSpan(5),
+                        Toggle::make('estado')
+                            ->label('Estado')
+                            ->visibleOn('edit')
+                            ->columnSpan(1),
+                        Textarea::make('descripcion')
+                            ->required()
+                            ->columnSpanFull(),
 
-                                        $map = [
-                                            'Motos Nuevas' => 'moto',
-                                            'Motos Usadas' => 'moto',
-                                            'Autos Nuevos' => 'auto',
-                                            'Autos Usados' => 'auto',
-                                        ];
+                        Select::make('tipo')
+                            ->options([
+                                'premium' => 'Anuncio Premium',
+                                'standar' => 'Anuncio Standar',
+                            ])->columnSpan(2),
 
-                                        $vehiculo = $map[$categoria->nombre] ?? null;
-                                        if (!$vehiculo) return [];
+                        Select::make('vendedor_id')
+                            ->label('Seleccione el vendedor de anuncio')
+                            ->relationship('vendedor', 'nombre')
+                            ->visible(function (Forms\Get $get) {
+                                $categoriaId = $get('id_categoria');
+                                if (!$categoriaId) return false;
 
-                                        return \App\Models\TipoVehiculo::where('vehiculo', $vehiculo)
-                                            ->pluck('tipo', 'id');
-                                    })
-                                    ->searchable()
-                                    ->required()
-                                    ->columnSpan(2),
-                                Select::make('marca_temp')
-                                    ->label('Marca')
-                                    ->placeholder('Selecciona una marca')
-                                    ->options(function (Get $get) {
-                                        $categoriaId = $get('id_categoria');
-                                        if (!$categoriaId) return [];
+                                $categoria = \App\Models\CategoriaAnuncio::find($categoriaId);
+                                return $categoria && in_array($categoria->nombre, ['Motos Usadas', 'Autos Usados']);
+                            })
+                            ->required()
+                            ->columnSpan(2),
 
-                                        // Validar existencia y que tenga campo 'nombre'
-                                        $categoria = \App\Models\CategoriaAnuncio::find($categoriaId);
-                                        if (!$categoria || !isset($categoria->nombre)) return [];
+                        Select::make('agencia_id')
+                            ->label('Seleccione la agencia de anuncio')
+                            ->relationship('agencia', 'nombre')
+                            ->visible(function (Forms\Get $get) {
+                                $categoriaId = $get('id_categoria');
+                                if (!$categoriaId) return false;
 
-                                        $map = [
-                                            'Motos Nuevas' => 'moto',
-                                            'Motos Usadas' => 'moto',
-                                            'Autos Nuevos' => 'auto',
-                                            'Autos Usados' => 'auto',
-                                        ];
+                                $categoria = \App\Models\CategoriaAnuncio::find($categoriaId);
+                                return $categoria && in_array($categoria->nombre, ['Motos Nuevas', 'Autos Nuevos']);
+                            })
+                            ->required()
+                            ->columnSpan(2),
 
-                                        $tipoVehiculo = $map[$categoria->nombre] ?? null;
-                                        if (!$tipoVehiculo) return [];
+                        Select::make('estado_temp')
+                            ->label('Estado')
+                            ->options(fn () => Estado::pluck('nombre', 'id')->toArray())
+                            ->placeholder('Selecciona un estado')
+                            ->reactive()
+                            ->afterStateUpdated(fn (Set $set) => $set('municipio_id', null))
+                            ->dehydrated(false)
+                            ->columnSpan(2),
 
-                                        return \App\Models\MarcaVehiculo::where('tipo_vehiculo', $tipoVehiculo)
-                                            ->pluck('marca', 'id')
-                                            ->toArray();
-                                    })
-                                    ->searchable()
-                                    ->reactive()
-                                    ->afterStateUpdated($actualization)
-                                    ->dehydrated(false)
-                                    ->columnSpan(2),
+                        Select::make('municipio_id')
+                            ->label('Municipio')
+                            ->placeholder('Selecciona un municipio')
+                            ->options(function (Get $get) {
+                                $estadoId = $get('estado_temp');
 
-                                Select::make('modelo_id')
-                                    ->label('Modelo')
-                                    ->placeholder('Selecciona un modelo')
-                                    ->options(function (Get $get) {
-                                        if (!$get('marca_temp')) return [];
+                                if (!$estadoId) {
+                                    return [];
+                                }
 
-                                        return \App\Models\ModeloVehiculo::where('marca_id', $get('marca_temp'))
-                                            ->pluck('modelo', 'id');
-                                    })
-                                    ->searchable()
-                                    ->required()
-                                    ->afterStateUpdated($actualization)
-                                    ->reactive()
-                                    ->columnSpan(2),
+                                return \App\Models\Municipio::where('estado_id', $estadoId)
+                                    ->pluck('nombre', 'id')
+                                    ->toArray();
+                            })
+                            ->required()
+                            ->searchable()
+                            ->reactive()
+                            ->columnSpan(2),
 
-                                TextInput::make('anio')
-                                    ->label('Año')
-                                    ->placeholder('Ej: 2021')
-                                    ->numeric()
-                                    ->afterStateUpdated($actualization)
-                                    ->required()
-                                    ->columnSpan(2),
-                                Select::make('combustible')
-                                    ->label('Combustible')
-                                    ->placeholder('Selecciona una opción')
-                                    ->options(function (Get $get) {
-                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
 
-                                        if ($categoria && $categoria->nombre === 'Autos Usados') {
-                                            return [
-                                                'gasolina' => 'Gasolina',
-                                                'diesel' => 'Diesel',
-                                                'electrico' => 'Eléctrico',
-                                                'hidrico' => 'Hidrico',
-                                            ];
-                                        }
+                        TextInput::make('precio')
+                            ->numeric()
+                            ->required()
+                            ->columnSpan(2),
 
-                                        return [
-                                            'gasolina' => 'Gasolina',
-                                            'electrico' => 'Eléctrico',
-                                        ];
-                                    })
-                                    ->required()
-                                    ->reactive()
-                                    ->columnSpan(2),
-                                TextInput::make('motor')
-                                    ->label('Motor(Cilindros)')
-                                    ->placeholder('Ej: 1.6')
-                                    ->required()
-                                    ->columnSpan(2),
-                                TextInput::make('Color')
-                                    ->label('Ingrese el color')
-                                    ->required()
-                                    ->columnSpan(2),
-                                Select::make('Vestidura')
-                                    ->label('Seleccione vestidura')
-                                    ->placeholder('Seleccione Vestidura')
-                                    ->options([
-                                        'tela' => 'Tela',
-                                        'piel' => 'Piel',
-                                    ])
-                                    ->required()
-                                    ->columnSpan(2)
-                                    ->visible(function (Get $get) {
-                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
-                                        return $categoria && $categoria->nombre === 'Autos Usados';
-                                    }),
-                                TextInput::make('kilometraje')
-                                    ->label('Kilometraje')
-                                    ->placeholder('Ej: 100000')
-                                    ->numeric()
-                                    ->required()
-                                    ->columnSpan(2),
-                                TextInput::make('num_puerta')
-                                    ->label('Números de Puertas')
-                                    ->placeholder('Ej: 5')
-                                    ->numeric()
-                                    ->required()
-                                    ->columnSpan(2)
-                                    ->visible(function (Get $get) {
-                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
-                                        return $categoria && $categoria->nombre === 'Autos Usados';
-                                    }),
-                                TextInput::make('num_pasajero')
-                                    ->label('Números de Pasajeros')
-                                    ->placeholder('Ej: 2')
-                                    ->numeric()
-                                    ->required()
-                                    ->columnSpan(2)
-                                    ->visible(function (Get $get) {
-                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
-                                        return $categoria && $categoria->nombre === 'Autos Usados';
-                                    }),
-                                Select::make('vidrios')
-                                    ->label('Tipo de vidrios')
-                                    ->placeholder('Seleccione Tipo Vidrios')
-                                    ->options([
-                                        'electrico' => 'Eléctrico',
-                                        'manual' => 'Manual',
-                                    ])
-                                    ->required()
-                                    ->columnSpan(2)
-                                    ->visible(function (Get $get) {
-                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
-                                        return $categoria && $categoria->nombre === 'Autos Usados';
-                                    }),
-                                Select::make('condicion')
-                                    ->label('Condición de vehículo')
-                                    ->placeholder('Seleccione condición de vehículo')
-                                    ->options(function (Get $get) {
-                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
-                                        return ($categoria && $categoria->nombre === 'Motos Nuevas')
-                                            ? ['nuevo' => 'Nuevo']
-                                            : ['usado' => 'Usado', 'seminuevo' => 'Seminuevo'];
-                                    })
-                                    ->default(function (Get $get) {
-                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
-                                        return ($categoria && $categoria->nombre === 'Motos Nuevas') ? 'nuevo' : null;
-                                    })
-                                    ->required()
-                                    ->dehydrated(true)
-                                    ->columnSpan(2)
-                                    ->visible(function (Get $get) {
-                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
-                                        // Oculta el select si es "Motos Nuevas"
-                                        return !$categoria || $categoria->nombre !== 'Motos Nuevas';
-                                    }),
-                                Hidden::make('condicion')
-                                    ->default('nuevo')
-                                    ->dehydrated(true)
-                                    ->visible(function (Get $get) {
-                                        $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
-                                        return $categoria && $categoria->nombre === 'Motos Nuevas';
-                                    }),
+                        TextInput::make('link_video')
+                            ->columnSpan(2),
 
+                    ]),
+
+                Section::make('Detalles del vehículo')
+                    ->columns(6)
+                    ->schema([
+                        Select::make('tipo_id')
+                            ->label('Tipo de Vehículo')
+                            ->options(fn () => \App\Models\TipoVehiculo::pluck('tipo', 'id'))
+                            ->searchable()
+                            ->required()
+                            ->columnSpan(2),
+
+                        Select::make('marca_temp')
+                            ->label('Marca')
+                            ->options(fn () => MarcaVehiculo::pluck('marca', 'id')->toArray())
+                            ->searchable()
+                            ->reactive()
+                            ->afterStateUpdated($actualization)
+                            ->dehydrated(false)
+                            ->columnSpan(2),
+
+                        Select::make('modelo_id')
+                            ->label('Modelo')
+                            ->options(fn (Get $get) => ModeloVehiculo::where('marca_id', $get('marca_temp'))->pluck('modelo', 'id'))
+                            ->searchable()
+                            ->required()
+                            ->reactive()
+                            ->afterStateUpdated($actualization)
+                            ->columnSpan(2),
+
+                        TextInput::make('anio')
+                            ->numeric()
+                            ->required()
+                            ->afterStateUpdated($actualization)
+                            ->columnSpan(2),
+                        TextInput::make('combustible')
+                            ->required()
+                            ->afterStateUpdated($actualization)
+                            ->columnSpan(2),
+                        TextInput::make('motor')
+                            ->required()
+                            ->afterStateUpdated($actualization)
+                            ->columnSpan(2),
+                        TextInput::make('color')
+                            ->required()
+                            ->afterStateUpdated($actualization)
+                            ->columnSpan(2),
+                        TextInput::make('kilometraje')
+                            ->required()
+                            ->afterStateUpdated($actualization)
+                            ->columnSpan(2),
+
+                        //Para Autos
+                        TextInput::make('vestidura')
+                            ->label('Vestidura')
+                            ->required()
+                            ->columnSpan(2)
+                            ->visible(function (Get $get) {
+                                $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
+                                return $categoria && $categoria->nombre === 'Autos Usados';
+                            }),
+
+                        TextInput::make('num_puerta')
+                            ->label('N° Puertas')
+                            ->numeric()
+                            ->required()
+                            ->columnSpan(2)
+                            ->visible(function (Get $get) {
+                                $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
+                                return $categoria && $categoria->nombre === 'Autos Usados';
+                            }),
+
+                        TextInput::make('num_pasajero')
+                            ->label('N° Pasajeros')
+                            ->numeric()
+                            ->required()
+                            ->columnSpan(2)
+                            ->visible(function (Get $get) {
+                                $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
+                                return $categoria && $categoria->nombre === 'Autos Usados';
+                            }),
+
+                        Select::make('vidrios')
+                            ->label('Vidrios')
+                            ->options([
+                                'manual' => 'Manual',
+                                'electrico' => 'Eléctrico',
                             ])
+                            ->required()
+                            ->columnSpan(2)
+                            ->visible(function (Get $get) {
+                                $categoria = \App\Models\CategoriaAnuncio::find($get('id_categoria'));
+                                return $categoria && $categoria->nombre === 'Autos Usados';
+                            }),
 
-                        ]),
-                    Step::make('Fotos del vehiculo')
-                        ->schema([
-                            FileUpload::make('imagenes')
-                                ->label('Fotos del vehículo')
-                                ->multiple()
-                                ->maxFiles(16)
-                                ->reorderable()
-                                ->image()
-                                ->directory('anuncios/fotos')
-                                ->preserveFilenames()
-                                ->required()
-                                ->columnSpanFull(),
-                        ]),
-                    Step::make('Datos del anuncio')
-                        ->schema([
-                            Hidden::make('num_anuncio')
-                                ->disabled(),
-                            TextInput::make('num_anuncio')
-                                ->label('Número de Anuncio')
-                                ->disabled()
-                                ->dehydrated(false)
-                                ->visibleOn('edit'),
 
-                            Section::make('Información del anuncio')
-                                ->columns(6)
-                                ->schema([
-                                    TextInput::make('titulo')
-                                        ->label('Título')
-                                        ->required()
-                                        ->columnSpanFull()
-                                        ->reactive(),
-                                    Textarea::make('descripcion')->required()->columnSpanFull(),
-                                    Select::make('tipo')
-                                        ->options([
-                                            'premium' => 'Anuncio Premium',
-                                            'standar' => 'Anuncio Standar',
-                                        ])->columnSpan(2),
-                                    TextInput::make('precio')->required()->numeric()->columnSpan(2),
-                                    TextInput::make('link_video')->columnSpan(2),
+                        Select::make('condicion')
+                            ->options([
+                                'nuevo' => 'Nuevo',
+                                'usado' => 'Usado',
+                                'seminuevo' => 'Seminuevo'
+                            ])
+                            ->required()
+                            ->columnSpan(2),
+                    ]),
 
-                                    Select::make('estado_temp')
-                                        ->label('Estado')
-                                        ->options(Estado::pluck('nombre', 'id'))
-                                        ->placeholder('Selecciona un estado')
-                                        ->reactive()
-                                        ->afterStateUpdated(fn (Set $set) => $set('municipio_id', null))
-                                        ->dehydrated(false)
-                                        ->columnSpan(2),
-                                    Select::make('municipio_id')
-                                        ->label('Municipio')
-                                        ->placeholder('Selecciona un municipio')
-                                        ->options(function (Get $get) {
-                                            if (!$get('estado_temp')) {
-                                                return [];
-                                            }
-                                            return \App\Models\Municipio::where('estado_id', $get('estado_temp'))
-                                                ->pluck('nombre', 'id')
-                                                ->toArray();
-                                        })
-                                        ->required()
-                                        ->searchable()
-                                        ->reactive()
-                                        ->columnSpan(2),
-                                    Select::make('vendedor_id')
-                                        ->label('Seleccione el vendedor de anuncio')
-                                        ->relationship('vendedor', 'nombre')
-                                        ->visible(function (Forms\Get $get) {
-                                            $categoriaId = $get('id_categoria');
-                                            if (!$categoriaId) return false;
+                Section::make('Fotos del vehículo')
+                    ->schema([
+                        FileUpload::make('imagenes')
+                            ->label('Fotos del vehículo')
+                            ->multiple()
+                            ->image()
+                            ->reorderable()
+                            ->directory('anuncios/fotos')
+                            ->preserveFilenames()
+                            ->maxFiles(16)
+                            ->required()
+                            ->columnSpanFull(),
+                    ])
 
-                                            $categoria = \App\Models\CategoriaAnuncio::find($categoriaId);
-                                            return $categoria && in_array($categoria->nombre, ['Motos Usadas', 'Autos Usados']);
-                                        })
-                                        ->required()
-                                        ->columnSpan(2),
-
-                                    Select::make('agencia_id')
-                                        ->label('Seleccione la agencia de anuncio')
-                                        ->relationship('agencia', 'nombre')
-                                        ->visible(function (Forms\Get $get) {
-                                            $categoriaId = $get('id_categoria');
-                                            if (!$categoriaId) return false;
-
-                                            $categoria = \App\Models\CategoriaAnuncio::find($categoriaId);
-                                            return $categoria && in_array($categoria->nombre, ['Motos Nuevas', 'Autos Nuevos']);
-                                        })
-                                        ->required()
-                                        ->columnSpan(2),
-                                    Toggle::make('estado')
-                                        ->label('Estado')
-                                        ->onColor('success')
-                                        ->offColor('danger')
-                                        ->visibleOn('edit')
-                                ])
-                        ])
-                ])->columnSpanFull()
             ]);
     }
 
@@ -385,43 +291,38 @@ class AnuncioResource extends Resource
             ->columns([
                 TextColumn::make('num_anuncio')->searchable()->sortable(),
                 TextColumn::make('titulo')->searchable()->sortable(),
+                TextColumn::make('tipo')->searchable()->sortable(),
+                TextColumn::make('vendedor.telefono')
+                    ->label('Tel. Vendedor')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('estado')
-                    ->label('Estado')
                     ->badge()
                     ->color(fn ($state) => $state == 1 ? 'success' : 'danger')
                     ->formatStateUsing(fn ($state) => $state ? 'Activo' : 'Inactivo'),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('estado')
-                    ->label('Estado')
+                SelectFilter::make('tipo')
                     ->options([
-                        1 => 'Activo',
-                        0 => 'Inactivo',
+                        'premium' => 'Premium',
+                        'standar' => 'Estandar',
                     ]),
+                SelectFilter::make('estado')
+                    ->options([
+                        '1' => 'Activo',
+                        '0' => 'Inactivo',
+                    ])
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListAnuncios::route('/'),
-            'create' => Pages\CreateAnuncio::route('/create'),
             'edit' => Pages\EditAnuncio::route('/{record}/edit'),
         ];
     }

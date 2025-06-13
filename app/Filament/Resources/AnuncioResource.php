@@ -292,10 +292,11 @@ class AnuncioResource extends Resource
                 TextColumn::make('num_anuncio')->searchable()->sortable(),
                 TextColumn::make('titulo')->searchable()->sortable(),
                 TextColumn::make('tipo')->searchable()->sortable(),
-                TextColumn::make('vendedor.telefono')
-                    ->label('Tel. Vendedor')
-                    ->searchable()
-                    ->sortable(),
+                TextColumn::make('telefono_contacto')
+                    ->label('Teléfono de contacto')
+                    ->getStateUsing(function ($record) {
+                        return $record->vendedor?->telefono ?? $record->agencia?->telefono ?? '—';
+                    }),
                 TextColumn::make('estado')
                     ->badge()
                     ->color(fn ($state) => $state == 1 ? 'success' : 'danger')

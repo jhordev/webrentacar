@@ -5,6 +5,26 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + Vue</title>
+
+    <!-- Script para evitar flash de contenido en dark mode -->
+    <script>
+      (function() {
+        // Intentar leer la preferencia guardada del usuario
+        const savedTheme = localStorage.getItem('theme');
+
+        // Si hay una preferencia guardada y es dark, aplicar inmediatamente
+        if (savedTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+        }
+        // Si no hay preferencia guardada, el modo claro es el predeterminado (no hacer nada)
+
+        // Opcional: Detectar preferencia del sistema si no hay preferencia guardada
+        // Descomenta las siguientes líneas si quieres que respete la preferencia del sistema
+        // else if (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        //   document.documentElement.classList.add('dark');
+        // }
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>

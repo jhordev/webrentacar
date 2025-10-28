@@ -17,56 +17,106 @@ defineProps({
 </script>
 
 <template>
-    <div
-        class="w-full md:max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-        <div class="overflow-hidden rounded-t-lg">
-            <a href="#" class="relative group">
+    <article
+        class="group w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl sm:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+    >
+        <!-- Imagen del Vehículo -->
+        <div class="relative overflow-hidden">
+            <a href="#" class="block relative">
                 <img
-                    class="rounded-t-lg  transform transition-transform duration-300 group-hover:scale-105 w-full h-52 object-cover"
+                    class="w-full h-40 sm:h-48 md:h-52 lg:h-56 object-cover transform transition-transform duration-500 group-hover:scale-110"
                     :src="imagen"
                     :alt="titulo"
                 />
-                <div v-if="premium" class="absolute top-0 right-0 py-0.5 px-5 bg-yellow-400 rounded-[5px]">
-                    <span class="text-[14px] font-semibold text-white">Premium</span>
+
+                <!-- Overlay gradiente en hover -->
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                <!-- Badge Premium/Estándar -->
+                <div
+                    v-if="premium"
+                    class="absolute top-2 right-2 sm:top-3 sm:right-3 py-1 px-3 sm:py-1.5 sm:px-4 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-lg shadow-md"
+                >
+                    <span class="text-xs sm:text-sm font-semibold text-white">Premium</span>
                 </div>
-                <div v-else="premium" class="absolute top-0 right-0 py-0.5 px-5 bg-principalcolor rounded-[5px]">
-                    <span class="text-[14px] font-medium text-white">Estandar</span>
+                <div
+                    v-else
+                    class="absolute top-2 right-2 sm:top-3 sm:right-3 py-1 px-3 sm:py-1.5 sm:px-4 bg-principalcolor rounded-lg shadow-md"
+                >
+                    <span class="text-xs sm:text-sm font-medium text-white">Estándar</span>
                 </div>
             </a>
         </div>
-        <div class="p-5">
-            <div class="pb-3 border-b-1  border-gray-300 dark:border-gray-600">
-                <span class="text-[14px] text-textColor dark:text-white">{{ id }}</span>
-                <a href="#">
-                    <h5 class="mt-1 text-[20px] font-bold tracking-tight text-gray-900 dark:text-white">
+
+        <!-- Contenido del Card -->
+        <div class="p-3 sm:p-4 md:p-5 space-y-3 sm:space-y-4">
+
+            <!-- Sección: ID, Título y Precio -->
+            <div class="pb-3 sm:pb-4 border-b border-gray-200 dark:border-gray-700 space-y-1 sm:space-y-2">
+                <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                    ID: {{ id }}
+                </span>
+
+                <a href="#" class="block group/title">
+                    <h5 class="text-base sm:text-lg md:text-xl font-bold tracking-tight text-gray-900 dark:text-white line-clamp-2 group-hover/title:text-principalcolor dark:group-hover/title:text-blue-400 transition-colors duration-300">
                         {{ titulo }}
                     </h5>
                 </a>
-                <h3 class="text-[24px] font-semibold mt-2 text-textColor dark:text-white">${{
-                        precio.toLocaleString()
-                    }}</h3>
-            </div>
-            <div class="py-3 border-b-1  border-gray-300 dark:border-gray-600 flex justify-between gap-x-6 gap-y-2">
-                <div class="text-textColor dark:text-white flex flex-col items-center gap-1">
-                    <IconGasStation class="w-6 h-6"/>
-                    <span class="text-[14px] font-medium">{{ combustible }}</span>
-                </div>
-                <div class="text-textColor dark:text-white flex flex-col items-center gap-1">
-                    <IconEngine class="w-6 h-6"/>
-                    <span class="text-[14px] font-medium">{{ cilindrada }}</span>
-                </div>
-                <div class="text-textColor dark:text-white flex flex-col items-center gap-1">
-                    <IconDashboard class="w-6 h-6"/>
-                    <span class="text-[14px] font-medium">{{ kilometraje }}</span>
+
+                <div class="flex items-baseline gap-1">
+                    <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">$</span>
+                    <h3 class="text-xl sm:text-2xl md:text-3xl font-bold text-principalcolor dark:text-blue-400">
+                        {{ precio.toLocaleString() }}
+                    </h3>
                 </div>
             </div>
-            <div class="text-textColor dark:text-white pt-3 flex gap-2 items-center">
-                <MapPin class="w-6 h-6"/>
-                <span class="text-[15px] font-medium">{{ ubicacion }}</span>
+
+            <!-- Sección: Especificaciones (Combustible, Motor, Kilometraje) -->
+            <div class="py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700">
+                <div class="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+                    <!-- Combustible -->
+                    <div class="flex flex-col items-center gap-1 sm:gap-2 text-gray-700 dark:text-gray-300 hover:text-principalcolor dark:hover:text-blue-400 transition-colors duration-300">
+                        <IconGasStation class="w-5 h-5 sm:w-6 sm:h-6"/>
+                        <span class="text-xs sm:text-sm font-medium text-center break-words">
+                            {{ combustible }}
+                        </span>
+                    </div>
+
+                    <!-- Cilindrada -->
+                    <div class="flex flex-col items-center gap-1 sm:gap-2 text-gray-700 dark:text-gray-300 hover:text-principalcolor dark:hover:text-blue-400 transition-colors duration-300">
+                        <IconEngine class="w-5 h-5 sm:w-6 sm:h-6"/>
+                        <span class="text-xs sm:text-sm font-medium text-center break-words">
+                            {{ cilindrada }}
+                        </span>
+                    </div>
+
+                    <!-- Kilometraje -->
+                    <div class="flex flex-col items-center gap-1 sm:gap-2 text-gray-700 dark:text-gray-300 hover:text-principalcolor dark:hover:text-blue-400 transition-colors duration-300">
+                        <IconDashboard class="w-5 h-5 sm:w-6 sm:h-6"/>
+                        <span class="text-xs sm:text-sm font-medium text-center break-words">
+                            {{ kilometraje }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Ubicación -->
+            <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                <MapPin class="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-principalcolor dark:text-blue-400"/>
+                <span class="text-xs sm:text-sm md:text-base font-medium truncate">
+                    {{ ubicacion }}
+                </span>
             </div>
         </div>
-    </div>
+    </article>
 </template>
 
 <style scoped>
+/* Limitar líneas del título */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 </style>

@@ -5,6 +5,7 @@ use App\Http\Controllers\ContratoAgenciaDownloadController;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
 
+
 /* Ruta por defecto
 Route::get('/', function () {
     return view('welcome');
@@ -14,6 +15,7 @@ Route::get('/', function () {
 Route::get('/', function () {
     return redirect()->to('/admin/login');
 });
+
 
 
 Route::get('/descargar-contrato/{filename}', function ($filename) {

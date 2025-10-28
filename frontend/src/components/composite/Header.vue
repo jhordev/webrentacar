@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { RouterLink } from 'vue-router';
 import SearchDropdown from '@/components/ui/SearchDropdown.vue';
+import DarkModeToggle from '@/components/ui/DarkModeToggle.vue';
 
 
 defineProps({
@@ -65,6 +66,10 @@ onUnmounted(() => {
                     <RouterLink to="/motos-nuevas" class="link-nav truncate max-w-32">Motos Nuevas</RouterLink>
                     <RouterLink to="/sobre-nosotros" class="link-nav truncate max-w-32 hidden lg:block">Sobre Nosotros</RouterLink>
                     <RouterLink to="/blog" class="link-nav truncate max-w-32 hidden lg:block">Blog</RouterLink>
+
+                    <!-- Dark Mode Toggle -->
+                    <DarkModeToggle />
+
                     <RouterLink to="/anunciate" class="btn-outline">Anúnciate</RouterLink>
                 </nav>
 
@@ -105,15 +110,17 @@ onUnmounted(() => {
 
     <aside
         :class="[
-            'fixed right-0 top-0 w-64 h-[calc(100vh-4rem)] transform transition-transform duration-300 z-56',
-            isScrolled
-                ? 'backdrop-blur-md border-b border-gray-600 bg-white/70 dark:bg-gray-900/50 shadow-sm'
-                : 'bg-white dark:bg-gray-900 shadow-lg',
+            'fixed right-0 top-[74.4px] w-64 h-[calc(100vh-74.4px)] transform transition-transform duration-300 z-65 border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg',
             isMenuOpen ? 'translate-x-0' : 'translate-x-full'
         ]"
         @click.stop
     >
-        <nav class="pt-26 px-6 flex flex-col gap-6">
+        <nav class="h-full overflow-y-auto px-6 py-6 flex flex-col gap-6">
+            <!-- Dark Mode Toggle -->
+            <div class="flex justify-center py-2 border-b border-gray-200 dark:border-gray-700 mb-2">
+                <DarkModeToggle />
+            </div>
+
             <RouterLink to="/" class="link-nav" @click="closeMenu">Inicio</RouterLink>
             <RouterLink to="/motos-usadas" class="link-nav" @click="closeMenu">Motos Usadas</RouterLink>
             <RouterLink to="/autos-usados" class="link-nav" @click="closeMenu">Autos Usados</RouterLink>

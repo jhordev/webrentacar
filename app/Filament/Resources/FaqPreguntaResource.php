@@ -26,6 +26,7 @@ class FaqPreguntaResource extends Resource
     protected static ?string $pluralLabel = 'Preguntas';
     protected static ?string $navigationGroup = 'FAQ';
     protected static ?string $navigationIcon = 'heroicon-o-question-mark-circle';
+    protected static ?int $navigationSort = 2;
 
 
     public static function form(Form $form): Form

@@ -27,6 +27,7 @@ class MunicipioResource extends Resource
     protected static ?string $navigationGroup = 'Ubigeo';
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office';
+    protected static ?int $navigationSort = 2;
 
 
 

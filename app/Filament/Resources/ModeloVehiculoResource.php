@@ -27,6 +27,7 @@ class ModeloVehiculoResource extends Resource
     protected static ?string $navigationGroup = 'Gestión de Marcas';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-group';
+    protected static ?int $navigationSort = 2;
 
 
     public static function form(Form $form): Form

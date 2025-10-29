@@ -26,6 +26,7 @@ class TipoVehiculoResource extends Resource
     protected static ?string $navigationGroup = 'Gestión de Detalles Vehículos';
 
     protected static ?string $navigationIcon = 'heroicon-o-truck';
+    protected static ?int $navigationSort = 1;
 
 
     public static function form(Form $form): Form

@@ -25,7 +25,9 @@ class VendedorResource extends Resource
     protected static ?string $label = 'Vendedor';
     protected static ?string $pluralLabel = 'Vendedores';
 
+    protected static ?string $navigationGroup = 'Gestión de Agencias';
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {

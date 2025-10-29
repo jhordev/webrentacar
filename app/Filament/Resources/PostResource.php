@@ -73,6 +73,7 @@ class PostResource extends Resource
                             ->helperText('Esta imagen se mostrará como portada en el listado o tarjeta del artículo.')
                             ->disk('public')
                             ->directory('articleimg')
+                            ->visibility('public')
                             ->image()
                             ->required()
                             ->getUploadedFileNameForStorageUsing(function ($file, $record, $get) {
@@ -80,14 +81,12 @@ class PostResource extends Resource
                                 $extension = $file->getClientOriginalExtension();
                                 return $slug . '-articleprincipal.' . $extension;
                             })
-                            ->deleteUploadedFileUsing(function ($file, $record) {
-                                if ($record && $record->logo && Storage::disk('public')->exists($record->logo)) {
-                                    Storage::disk('public')->delete($record->logo);
-                                }
+                            ->deleteUploadedFileUsing(function ($file) {
+                                Storage::disk('public')->delete($file);
                             })
                             ->afterStateUpdated(function ($state, $set) {
                                 if (is_array($state)) {
-                                    $set(reset($state));
+                                    $set('image', reset($state));
                                 }
                             })
                             ->dehydrateStateUsing(function ($state) {

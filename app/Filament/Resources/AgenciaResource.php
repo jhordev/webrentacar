@@ -35,6 +35,7 @@ class AgenciaResource extends Resource
     protected static ?string $pluralLabel = 'Agencias';
     protected static ?string $navigationGroup = 'Gestión de Agencias';
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
+    protected static ?int $navigationSort = 1;
 
 
     public static function form(Form $form): Form

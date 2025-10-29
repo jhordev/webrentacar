@@ -28,6 +28,7 @@ class MarcaVehiculoResource extends Resource
     protected static ?string $navigationGroup = 'Gestión de Marcas';
 
     protected static ?string $navigationIcon = 'heroicon-o-flag';
+    protected static ?int $navigationSort = 1;
 
 
     public static function form(Form $form): Form

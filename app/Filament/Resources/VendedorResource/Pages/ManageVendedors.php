@@ -16,4 +16,13 @@ class ManageVendedors extends ManageRecords
             Actions\CreateAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        if (isset($data['perfil']) && !empty($data['perfil'])) {
+            // Remover el directorio del path (vendedoresperfil/)
+            $data['perfil'] = str_replace('vendedoresperfil/', '', $data['perfil']);
+        }
+        return $data;
+    }
 }

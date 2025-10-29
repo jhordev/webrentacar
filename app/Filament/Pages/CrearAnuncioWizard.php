@@ -36,6 +36,11 @@ class CrearAnuncioWizard extends Page implements Forms\Contracts\HasForms
         return 'Administrador de anuncios';
     }
 
+    public static function getNavigationSort(): ?int
+    {
+        return 2;
+    }
+
     public static function shouldRegisterNavigation(): bool
     {
         return true;

@@ -36,6 +36,7 @@ class AnuncioResource extends Resource
     protected static ?string $navigationGroup = 'Administrador de anuncios';
 
     protected static ?string $navigationIcon = 'heroicon-o-megaphone';
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {

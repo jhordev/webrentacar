@@ -29,6 +29,7 @@ class ContratoAgenciaResource extends Resource
     protected static ?string $navigationGroup = 'Gestión de Agencias';
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document';
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {

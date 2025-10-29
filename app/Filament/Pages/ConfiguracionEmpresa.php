@@ -30,11 +30,18 @@ class ConfiguracionEmpresa extends Page
             ['nombre' => 'Mi Empresa']
         );
 
+        $logo = $empresa->logo;
+        // Si el logo es JSON o array, limpiarlo
+        if (is_string($logo) && (str_starts_with($logo, '{') || str_starts_with($logo, '['))) {
+            $logo = null;
+        }
+
         $this->formData = [
             ...$empresa->only([
-                'nombre','logo','direccion','email',
+                'nombre','direccion','email',
                 'telefono','whatsapp','sitio_web',
             ]),
+            'logo' => $logo,
             'redes_sociales' => $empresa->redesSociales
                 ->map(fn($r) => $r->only(['id','nombre_red','url','orden']))
                 ->toArray(),
@@ -65,7 +72,23 @@ class ConfiguracionEmpresa extends Page
                                     ->rules(['dimensions:ratio=1/1'])
                                     ->helperText('Solo se permiten imágenes cuadradas PNG, JPG, SVG o WEBP.')
                                     ->columnSpanFull()
-                                    ->preserveFilenames(),
+                                    ->getUploadedFileNameForStorageUsing(function ($file, $get) {
+                                        $nombreEmpresa = $get('nombre') ?? 'sin-nombre';
+                                        $nombreLimpio = Str::slug($nombreEmpresa);
+                                        $extension = $file->getClientOriginalExtension();
+                                        return $nombreLimpio . '-logo.' . $extension;
+                                    })
+                                    ->deleteUploadedFileUsing(function ($file) {
+                                        Storage::disk('public')->delete($file);
+                                    })
+                                    ->afterStateUpdated(function ($state, $set) {
+                                        if (is_array($state)) {
+                                            $set('logo', reset($state));
+                                        }
+                                    })
+                                    ->dehydrateStateUsing(function ($state) {
+                                        return is_array($state) ? reset($state) : $state;
+                                    }),
                             ]),
                     ]),
 
@@ -90,30 +113,6 @@ class ConfiguracionEmpresa extends Page
     public function submit(): void
     {
         $empresa = ConfigEmpresa::firstOrCreate(['id' => 1]);
-
-        $nombreEmpresa = $this->formData['nombre'] ?? 'sin-nombre';
-        $nombreLimpio = Str::slug($nombreEmpresa);
-
-        // Validar si hay un logo cargado
-        if (!empty($this->formData['logo'])) {
-            $archivo = is_array($this->formData['logo'])
-                ? reset($this->formData['logo'])
-                : $this->formData['logo'];
-
-            $extension = pathinfo($archivo, PATHINFO_EXTENSION);
-            $nuevoNombre = $nombreLimpio . '-logo.' . $extension;
-            $rutaDestino = 'configempresa/' . $nuevoNombre;
-
-            if (Storage::disk('public')->exists($archivo)) {
-                // Borrar si ya existe uno con el mismo nombre
-                if (Storage::disk('public')->exists($rutaDestino)) {
-                    Storage::disk('public')->delete($rutaDestino);
-                }
-
-                Storage::disk('public')->move($archivo, $rutaDestino);
-                $this->formData['logo'] = $rutaDestino;
-            }
-        }
 
         // Guardar datos de la empresa
         $empresa->fill($this->formData)->save();

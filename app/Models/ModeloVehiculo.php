@@ -11,7 +11,7 @@ class ModeloVehiculo extends Model
     protected $table = 'modelo_vehiculo';
     protected $fillable = ['marca_id', 'modelo'];
 
-    public function marcaVehiculo()
+    public function marca()
     {
         return $this->belongsTo(MarcaVehiculo::class, 'marca_id');
     }

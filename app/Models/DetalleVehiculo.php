@@ -36,4 +36,16 @@ class DetalleVehiculo extends Model
         return $this->belongsTo(Anuncio::class, 'anuncio_id');
     }
 
+    // Relación a través de modelo para acceder a la marca
+    public function marca()
+    {
+        return $this->hasOneThrough(
+            MarcaVehiculo::class,
+            ModeloVehiculo::class,
+            'id', // Foreign key on ModeloVehiculo table
+            'id', // Foreign key on MarcaVehiculo table
+            'modelo_id', // Local key on DetalleVehiculo table
+            'marca_id' // Local key on ModeloVehiculo table
+        );
+    }
 }

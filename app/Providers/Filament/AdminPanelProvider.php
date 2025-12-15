@@ -18,6 +18,11 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Widgets\BienvenidaWidget;
+use App\Filament\Widgets\StatsOverviewWidget;
+use App\Filament\Widgets\AnunciosPorMesChart;
+use App\Filament\Widgets\AnunciosPorCategoriaChart;
+use App\Filament\Widgets\VehiculosPorMarcaChart;
+use App\Filament\Widgets\AnunciosPorEstadoChart;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -39,7 +44,12 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                BienvenidaWidget::class
+                StatsOverviewWidget::class,
+                AnunciosPorCategoriaChart::class,
+                AnunciosPorMesChart::class,
+                VehiculosPorMarcaChart::class,
+                AnunciosPorEstadoChart::class,
+                BienvenidaWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
